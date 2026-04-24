@@ -260,6 +260,7 @@
       <a href="#ingest" class="hover:text-stone-900">Ingest</a>
       <a href="#employee" class="hover:text-stone-900">Employee</a>
       <a href="#client" class="hover:text-stone-900">Client</a>
+      <a href="#roadmap" class="hover:text-stone-900">Roadmap</a>
     </div>
   </div>
 </header>
@@ -876,6 +877,139 @@
       <div class="section-label mb-2">Storage</div>
       <div class="font-semibold mb-1">Postgres + pgvector + S3</div>
       <div class="text-stone-500">One shared source of truth. Accessed only through the API.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 09. Roadmap -->
+<section id="roadmap" class="bg-stone-100 border-y border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-14">
+    <div class="flex items-baseline gap-4 mb-6">
+      <span class="num-chip">09</span>
+      <h2 class="serif text-3xl md:text-4xl tracking-tight">Rollout plan</h2>
+    </div>
+    <p class="text-stone-600 leading-relaxed mb-10 max-w-3xl">
+      Three phases. Each phase is usable on its own and builds on the previous one — the
+      next phase is an addition, not a rewrite. Google Drive serves as the client-facing
+      surface through the first two phases, until the portal is ready to take its place.
+    </p>
+
+    <div class="grid md:grid-cols-3 gap-5 mb-10">
+      <!-- Phase 1 -->
+      <div class="card p-6" style="border-color: var(--accent);">
+        <div class="section-label mb-2" style="color: var(--accent);">Phase 01</div>
+        <div class="serif text-2xl leading-tight mb-2">Cowork-native setup</div>
+        <p class="text-stone-500 text-sm mb-4"><em>Get all associates working the same way, clients visible through Google Drive. No custom code.</em></p>
+
+        <div class="section-label mb-2">What we build</div>
+        <ul class="text-sm text-stone-700 space-y-1.5 mb-4">
+          <li>· Google Workspace with one Shared Drive per client + one Internal Drive.</li>
+          <li>· Claude Team / Enterprise, five seats.</li>
+          <li>· Private GitHub repo with <span class="mono">AI_Rules.md</span> and the first 5–10 skills.</li>
+          <li>· Private Plugin Marketplace with auto-install to every Cowork.</li>
+          <li>· One Cowork Project per client, pointing at that client's Shared Drive and the rulebook.</li>
+        </ul>
+
+        <div class="section-label mb-2">Sharing with the client</div>
+        <p class="text-sm text-stone-700 mb-4">Native Google Drive sharing — the client signs in with Google and sees only their own Shared Drive.</p>
+
+        <div class="section-label mb-2">Done when</div>
+        <p class="text-sm text-stone-700">Any associate can onboard a new client in under an hour — new Shared Drive, new Cowork Project, same rules — and start working.</p>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="card p-6" style="border-color: var(--accent);">
+        <div class="section-label mb-2" style="color: var(--accent);">Phase 02</div>
+        <div class="serif text-2xl leading-tight mb-2">Central store, internal-only</div>
+        <p class="text-stone-500 text-sm mb-4"><em>The team gets its own AI archive with RAG search. Clients still use Google Drive.</em></p>
+
+        <div class="section-label mb-2">What we build</div>
+        <ul class="text-sm text-stone-700 space-y-1.5 mb-4">
+          <li>· Supabase backend: Postgres + pgvector + object storage + Auth, on a small VPS.</li>
+          <li>· Schema with RLS from day one: artifacts, versions, representations, chunks, embeddings, inbox, audit, tokens.</li>
+          <li>· Cowork plugin v2 with <span class="mono">/save-artifact</span>, <span class="mono">/search</span>, <span class="mono">/fetch-artifact</span>.</li>
+          <li>· Ingest Track A from day one. Track B: one integrator (Telegram via Telethon) as a first proof.</li>
+          <li>· Server-side triage agent on the canonical Markdown feed.</li>
+          <li>· A minimal admin panel for inbox, buffer, clients, tokens.</li>
+        </ul>
+
+        <div class="section-label mb-2">Sharing with the client</div>
+        <p class="text-sm text-stone-700 mb-4">Still Google Drive. A <span class="mono">/publish-to-client</span> skill mirrors the artifact from the store into the client's Shared Drive — nothing changes for the client.</p>
+
+        <div class="section-label mb-2">Done when</div>
+        <p class="text-sm text-stone-700">An associate can ask Cowork "what did we write to ACME about GDPR last year" and get a cited answer straight from the store.</p>
+      </div>
+
+      <!-- Phase 3 -->
+      <div class="card p-6" style="border-color: var(--accent);">
+        <div class="section-label mb-2" style="color: var(--accent);">Phase 03</div>
+        <div class="serif text-2xl leading-tight mb-2">Client portal + RAG chat</div>
+        <p class="text-stone-500 text-sm mb-4"><em>Retire Google Drive as the client-facing surface. Give the client a real portal.</em></p>
+
+        <div class="section-label mb-2">What we build</div>
+        <ul class="text-sm text-stone-700 space-y-1.5 mb-4">
+          <li>· Next.js portal: document view, RAG chat, comments, human escalation.</li>
+          <li>· Magic-link authentication (SSO available for larger clients).</li>
+          <li>· Streamed chat responses with clickable citations.</li>
+          <li>· Visibility promotion controls in the Cowork plugin (<em>internal → public</em>).</li>
+          <li>· Migration: public-facing materials move from Drive into the store; Drive becomes a read-only archive.</li>
+          <li>· Client comments loop back into the team's Cowork as notifications.</li>
+        </ul>
+
+        <div class="section-label mb-2">Sharing with the client</div>
+        <p class="text-sm text-stone-700 mb-4">The portal. The client logs in at a single URL and sees everything — documents, chat, comments.</p>
+
+        <div class="section-label mb-2">Done when</div>
+        <p class="text-sm text-stone-700">A client opens the portal, asks a question, and gets a grounded answer with citations to their own documents.</p>
+      </div>
+    </div>
+
+    <!-- Sharing strategy table -->
+    <div class="card p-6">
+      <div class="section-label mb-3">Sharing strategy across phases</div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="border-b border-stone-200">
+              <th class="py-3 pr-6 table-head">Surface</th>
+              <th class="py-3 px-4 table-head">Phase 01</th>
+              <th class="py-3 px-4 table-head">Phase 02</th>
+              <th class="py-3 px-4 table-head">Phase 03</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100">
+            <tr>
+              <td class="py-3 pr-6 font-semibold">To the client</td>
+              <td class="py-3 px-4 text-stone-700">Google Drive</td>
+              <td class="py-3 px-4 text-stone-700">Google Drive (mirrored from the store)</td>
+              <td class="py-3 px-4 text-stone-700">Portal</td>
+            </tr>
+            <tr>
+              <td class="py-3 pr-6 font-semibold">Between associates</td>
+              <td class="py-3 px-4 text-stone-700">Google Drive + Cowork</td>
+              <td class="py-3 px-4 text-stone-700">Store + Cowork (Drive for in-flight work)</td>
+              <td class="py-3 px-4 text-stone-700">Store + Cowork</td>
+            </tr>
+            <tr>
+              <td class="py-3 pr-6 font-semibold">Rules, skills, plugins</td>
+              <td class="py-3 px-4 text-stone-700">GitHub repo</td>
+              <td class="py-3 px-4 text-stone-700">GitHub repo</td>
+              <td class="py-3 px-4 text-stone-700">GitHub repo</td>
+            </tr>
+            <tr>
+              <td class="py-3 pr-6 font-semibold">Finished artifacts</td>
+              <td class="py-3 px-4 text-stone-700">Drive</td>
+              <td class="py-3 px-4 text-stone-700">Store (mirrored to Drive for the client)</td>
+              <td class="py-3 px-4 text-stone-700">Store</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-stone-500 text-sm leading-relaxed mt-4">
+        The client never loses a channel across phase transitions. What changes is where the
+        source of truth lives — progressively moving from Google Drive to the firm's own store,
+        and finally to the portal built on top of it.
+      </p>
     </div>
   </div>
 </section>
