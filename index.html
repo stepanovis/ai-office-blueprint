@@ -180,29 +180,100 @@
   .seq-msg .arr { color: var(--accent); font-weight: 700; margin: 0 6px; }
   .seq-msg b { color: var(--ink); }
   .seq-note { color: var(--muted); font-size: 12px; font-style: italic; margin-top: 3px; }
+
+  /* Sidebar */
+  :root {
+    --sidebar-w: 220px;
+    --gold-bg: #3d2f11;
+    --gold-active: #7a5c22;
+    --gold-text: #c7a96c;
+    --gold-text-hi: #f4ead0;
+  }
+  .sidebar {
+    position: fixed; top: 0; left: 0;
+    height: 100vh; width: var(--sidebar-w);
+    background: var(--gold-bg);
+    color: var(--gold-text);
+    overflow-y: auto;
+    z-index: 50;
+    padding: 22px 0 20px 0;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 20px 20px 20px;
+    color: var(--gold-text-hi);
+    font-weight: 600; font-size: 14px;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 14px;
+  }
+  .sidebar-brand .brand-mark {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: linear-gradient(90deg, #c9a24a 0%, #e8c890 100%);
+    flex-shrink: 0;
+  }
+  .sidebar-nav { display: flex; flex-direction: column; }
+  .sidebar-nav a {
+    display: block;
+    padding: 12px 20px;
+    color: var(--gold-text);
+    font-size: 13px; line-height: 1.35;
+    text-decoration: none;
+    transition: background 0.12s, color 0.12s;
+  }
+  .sidebar-nav a:hover {
+    color: var(--gold-text-hi);
+    background: rgba(255,255,255,0.04);
+  }
+  .sidebar-nav a.active {
+    background: var(--gold-active);
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .sidebar-nav a .nav-num {
+    display: inline-block;
+    width: 24px;
+    color: inherit; opacity: 0.7;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+  .sidebar-nav a.active .nav-num { opacity: 0.9; }
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 18px 20px 0 20px;
+    font-size: 11px; color: rgba(244,234,208,0.5);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  main.content { margin-left: var(--sidebar-w); }
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    main.content { margin-left: 0; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<header class="border-b border-stone-200">
-  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-7 h-7 rounded-md accent-bar"></div>
-      <span class="font-semibold tracking-tight">AI Office Blueprint</span>
-    </div>
-    <div class="hidden md:flex items-center gap-5 text-sm text-stone-500">
-      <a href="#team" class="hover:text-stone-900">Team</a>
-      <a href="#places" class="hover:text-stone-900">Where it lives</a>
-      <a href="#cowork" class="hover:text-stone-900">Cowork</a>
-      <a href="#skills" class="hover:text-stone-900">Skills</a>
-      <a href="#docs" class="hover:text-stone-900">Documents</a>
-      <a href="#ingest" class="hover:text-stone-900">Ingest</a>
-      <a href="#employee" class="hover:text-stone-900">Employee</a>
-      <a href="#client" class="hover:text-stone-900">Client</a>
-    </div>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark"></div>
+    <span>AI Office Blueprint</span>
   </div>
-</header>
+  <nav class="sidebar-nav" id="sidebarNav">
+    <a href="#team"     data-section="team"><span class="nav-num">01</span>Team</a>
+    <a href="#places"   data-section="places"><span class="nav-num">02</span>Where it lives</a>
+    <a href="#cowork"   data-section="cowork"><span class="nav-num">03</span>Cowork role</a>
+    <a href="#skills"   data-section="skills"><span class="nav-num">04</span>Skills &amp; rules</a>
+    <a href="#docs"     data-section="docs"><span class="nav-num">05</span>Documents</a>
+    <a href="#ingest"   data-section="ingest"><span class="nav-num">06</span>Ingest</a>
+    <a href="#employee" data-section="employee"><span class="nav-num">07</span>Employee access</a>
+    <a href="#client"   data-section="client"><span class="nav-num">08</span>Client access</a>
+  </nav>
+</aside>
+
+<main class="content">
 
 <!-- Hero -->
 <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
@@ -756,5 +827,33 @@
   </div>
 </footer>
 
+</main>
+
+<script>
+  // Scroll-spy: highlight the sidebar item for the currently visible section
+  (function () {
+    const links = Array.from(document.querySelectorAll('#sidebarNav a'));
+    const sections = links
+      .map(a => document.getElementById(a.dataset.section))
+      .filter(Boolean);
+
+    function setActive(id) {
+      links.forEach(a => a.classList.toggle('active', a.dataset.section === id));
+    }
+
+    // Initial state
+    if (sections[0]) setActive(sections[0].id);
+
+    const io = new IntersectionObserver((entries) => {
+      // Pick the entry closest to the top of the viewport that is intersecting
+      const visible = entries
+        .filter(e => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible[0]) setActive(visible[0].target.id);
+    }, { rootMargin: '-30% 0px -55% 0px', threshold: 0 });
+
+    sections.forEach(s => io.observe(s));
+  })();
+</script>
 </body>
 </html>
