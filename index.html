@@ -135,7 +135,9 @@
     </div>
     <div class="hidden md:flex items-center gap-6 text-sm text-stone-500">
       <a href="#storage" class="hover:text-stone-900">Storage</a>
+      <a href="#datamodel" class="hover:text-stone-900">Data model</a>
       <a href="#pipeline" class="hover:text-stone-900">Pipeline</a>
+      <a href="#flows" class="hover:text-stone-900">Flows</a>
       <a href="#components" class="hover:text-stone-900">Components</a>
       <a href="#rules" class="hover:text-stone-900">Rules</a>
     </div>
@@ -248,6 +250,116 @@
   </div>
 </section>
 
+<!-- Data Model -->
+<section id="datamodel" class="bg-stone-900 text-stone-100">
+  <div class="max-w-6xl mx-auto px-6 py-20">
+    <div class="max-w-3xl mb-10">
+      <div class="section-label mb-3" style="color:#e8a07c;">Data Model</div>
+      <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
+        The entities and how they relate.
+      </h2>
+      <p class="text-stone-300 leading-relaxed">
+        Every piece of data in the system belongs to exactly one client. Artifacts have versions;
+        each version carries multiple representations and an independent set of embedding chunks.
+        Access tokens — for both employees and clients — are scoped, revocable, and auditable.
+      </p>
+    </div>
+    <div class="bg-white rounded-xl p-6 overflow-x-auto">
+      <div class="mermaid">
+erDiagram
+  CLIENT ||--o{ ARTIFACT : "owns"
+  CLIENT ||--o{ USER_ACCESS : "grants"
+  USER ||--o{ USER_ACCESS : "has"
+  USER ||--o{ ACCESS_TOKEN : "holds"
+  ARTIFACT ||--|{ ARTIFACT_VERSION : "has"
+  ARTIFACT_VERSION ||--|{ REPRESENTATION : "contains"
+  ARTIFACT_VERSION ||--o{ CHUNK : "indexed_as"
+  CHUNK }o--|| EMBEDDING : "stored_as"
+  ARTIFACT ||--o{ COMMENT : "receives"
+  INBOX_EVENT }o--o| ARTIFACT : "produced"
+  AUDIT_LOG }o--|| USER : "written_by"
+
+  CLIENT {
+    uuid id
+    string name
+    string slug
+  }
+  USER {
+    uuid id
+    enum role "employee client admin"
+    string email
+  }
+  USER_ACCESS {
+    uuid user_id
+    uuid client_id
+    enum scope "read write admin"
+  }
+  ACCESS_TOKEN {
+    uuid id
+    uuid user_id
+    string hash
+    jsonb scope
+    timestamp expires_at
+  }
+  ARTIFACT {
+    uuid id
+    uuid client_id
+    string type
+    string title
+    text_array tags
+    enum visibility "internal public"
+  }
+  ARTIFACT_VERSION {
+    uuid id
+    uuid artifact_id
+    int version
+    uuid author_user_id
+    timestamp created_at
+  }
+  REPRESENTATION {
+    uuid id
+    uuid version_id
+    enum kind "raw canonical preview transcript"
+    string mime_type
+    string storage_key
+  }
+  CHUNK {
+    uuid id
+    uuid version_id
+    int ordinal
+    text content
+  }
+  EMBEDDING {
+    uuid chunk_id
+    vector embedding
+    string model
+  }
+  COMMENT {
+    uuid id
+    uuid artifact_id
+    uuid author_user_id
+    text body
+  }
+  INBOX_EVENT {
+    uuid id
+    string source
+    string source_id
+    jsonb payload
+    timestamp received_at
+  }
+  AUDIT_LOG {
+    uuid id
+    uuid user_id
+    string action
+    jsonb context
+    timestamp at
+  }
+      </div>
+    </div>
+    <div class="mt-4 text-xs text-stone-500">Every row in every artifact-related table carries <span class="mono text-stone-300">client_id</span>, which is the anchor for Row-Level Security.</div>
+  </div>
+</section>
+
 <!-- Pipeline diagram -->
 <section id="pipeline" class="bg-stone-100 border-y border-stone-200">
   <div class="max-w-6xl mx-auto px-6 py-20">
@@ -304,6 +416,180 @@ flowchart TB
       </div>
     </div>
     <div class="text-center text-xs text-stone-500 mt-4">Data flows left-to-right from sources to consumers; the inbox is the single point of write.</div>
+  </div>
+</section>
+
+<!-- Data Flows -->
+<section id="flows" class="max-w-6xl mx-auto px-6 py-20">
+  <div class="max-w-3xl mb-12">
+    <div class="section-label mb-3">Data Flows</div>
+    <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
+      How each piece of data actually moves.
+    </h2>
+    <p class="text-stone-600 leading-relaxed">
+      Four sequences covering the system's critical paths: an employee producing an artifact,
+      an external source being ingested, a client asking a question, and the lifecycle of an
+      artifact from inbox to public visibility.
+    </p>
+  </div>
+
+  <!-- Flow A: Employee write -->
+  <div class="mb-16">
+    <div class="flex items-baseline gap-4 mb-4">
+      <span class="mono text-xs text-stone-500">FLOW A</span>
+      <h3 class="serif text-2xl">Employee writes an artifact from Cowork</h3>
+    </div>
+    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
+      The employee runs a skill in Claude Cowork. The MCP plugin attaches the bearer token
+      transparently — it never reaches the prompt. The API validates the token's scope against
+      the client_id taken from the project's instructions, creates a new version, and writes
+      the representations in a single transaction.
+    </p>
+    <div class="mermaid-wrap">
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant E as Employee
+  participant CW as Claude Cowork
+  participant MCP as MCP Plugin (local)
+  participant API as Central API
+  participant DB as Postgres (RLS)
+  participant S3 as S3 Storage
+  participant Q as Extract + Embed Worker
+
+  E->>CW: /save-artifact &#40;file, title, tags&#41;
+  CW->>MCP: tool_call &#40;artifact payload + project client_id&#41;
+  Note over MCP: Reads bearer token<br/>from OS keychain
+  MCP->>API: POST /artifacts &#40;Bearer token&#41;
+  API->>API: Verify token scope<br/>includes client_id
+  API->>S3: PUT raw representation
+  API->>DB: INSERT artifact + version + representation
+  DB-->>API: artifact_id, version_id
+  API-->>MCP: 201 Created &#40;artifact_id&#41;
+  MCP-->>CW: result &#40;link, id&#41;
+  API->>Q: enqueue &#40;artifact_id, version_id&#41;
+  Q->>S3: GET raw
+  Q->>Q: Extract &amp; normalize → MD
+  Q->>Q: Chunk &amp; embed
+  Q->>S3: PUT canonical + preview
+  Q->>DB: INSERT representations + chunks + embeddings
+      </div>
+    </div>
+  </div>
+
+  <!-- Flow B: External ingest -->
+  <div class="mb-16">
+    <div class="flex items-baseline gap-4 mb-4">
+      <span class="mono text-xs text-stone-500">FLOW B</span>
+      <h3 class="serif text-2xl">External source ingested into inbox</h3>
+    </div>
+    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
+      For sources without native Cowork connectors — Telegram, Fireflies, Slack — a small
+      integrator service listens over webhook or long-poll, deduplicates by source ID, and
+      pushes raw events into the single inbox. A triage worker classifies the event and
+      promotes it to an artifact.
+    </p>
+    <div class="mermaid-wrap">
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant SRC as External source<br/>&#40;Telegram, Fireflies, …&#41;
+  participant INT as Integrator service
+  participant IN as Inbox table
+  participant TR as Triage worker
+  participant EX as Extractor
+  participant DB as Postgres
+  participant S3 as S3
+
+  SRC->>INT: event &#40;new message / transcript&#41;
+  INT->>INT: Dedupe by source_id
+  INT->>S3: PUT raw media &#40;if any&#41;
+  INT->>IN: INSERT inbox_event &#40;source, source_id, payload&#41;
+  Note over IN: Audit log entry written
+  TR->>IN: SELECT unprocessed events
+  TR->>TR: Apply rules &#40;which client, type, tags&#41;
+  alt client_id identified
+    TR->>EX: extract + normalize
+    EX->>DB: INSERT artifact + version + representations
+    EX->>DB: INSERT chunks + embeddings
+    TR->>IN: mark event processed
+  else unknown
+    TR->>IN: move to buffer &#40;client_id = null&#41;
+    Note over TR: Operator will assign<br/>via admin UI
+  end
+      </div>
+    </div>
+  </div>
+
+  <!-- Flow C: Client RAG chat -->
+  <div class="mb-16">
+    <div class="flex items-baseline gap-4 mb-4">
+      <span class="mono text-xs text-stone-500">FLOW C</span>
+      <h3 class="serif text-2xl">Client asks a question in the portal chat</h3>
+    </div>
+    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
+      The client's JWT carries their own client_id. Every downstream query is filtered by that
+      value at the SQL level — the application cannot choose to ignore it. Retrieved chunks are
+      passed to Claude with a strict system prompt; the answer is streamed back with inline
+      citations linking to source documents.
+    </p>
+    <div class="mermaid-wrap">
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Client browser
+  participant P as Portal &#40;Next.js&#41;
+  participant API as Central API
+  participant DB as Postgres + pgvector &#40;RLS&#41;
+  participant EM as Embeddings service
+  participant LLM as Claude API
+
+  C->>P: Types question
+  P->>API: POST /chat &#40;JWT, query&#41;
+  API->>API: Decode JWT → client_id
+  API->>EM: embed &#40;query&#41;
+  EM-->>API: vector
+  API->>DB: SELECT chunks WHERE client_id = $jwt<br/>AND visibility = 'public'<br/>ORDER BY embedding &lt;=&gt; $vector LIMIT 10
+  DB-->>API: top-K chunks + metadata
+  API->>LLM: messages + retrieved context<br/>system: "answer only from sources"
+  LLM-->>API: streamed tokens + citations
+  API-->>P: SSE stream
+  P-->>C: Rendered answer with citation links
+  Note over C,P: Citation click → opens<br/>source document at page
+  P->>API: POST /chat/log &#40;Q&A pair&#41;
+  API->>DB: INSERT chat_message, audit_log
+      </div>
+    </div>
+  </div>
+
+  <!-- Flow D: Artifact lifecycle -->
+  <div>
+    <div class="flex items-baseline gap-4 mb-4">
+      <span class="mono text-xs text-stone-500">FLOW D</span>
+      <h3 class="serif text-2xl">Artifact lifecycle — from inbox to client visibility</h3>
+    </div>
+    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
+      An artifact moves through distinct states, each with explicit entry conditions. Nothing
+      reaches the client except through the final explicit promotion, which an employee performs
+      via the Cowork plugin or the admin portal.
+    </p>
+    <div class="mermaid-wrap">
+      <div class="mermaid">
+stateDiagram-v2
+  [*] --> Received : Event lands in inbox
+  Received --> Triaged : Rules assign client_id + type
+  Received --> Buffered : No match — operator decides
+  Buffered --> Triaged : Operator assigns client_id
+  Triaged --> Extracted : Raw → canonical MD + transcript
+  Extracted --> Indexed : Chunks + embeddings persisted
+  Indexed --> Internal : Default visibility
+  Internal --> Public : Employee promotes artifact
+  Public --> Internal : Employee demotes &#40;reversible&#41;
+  Public --> Archived : Retention policy or manual
+  Internal --> Archived : Retention policy or manual
+  Archived --> [*]
+      </div>
+    </div>
   </div>
 </section>
 
