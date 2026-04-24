@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Office Blueprint — Multi-Client Architecture</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    themeVariables: {
+      primaryColor: "#f4f4f2",
+      primaryTextColor: "#1a1a1a",
+      primaryBorderColor: "#c96442",
+      lineColor: "#7c7c7c",
+      secondaryColor: "#ede9e2",
+      tertiaryColor: "#ffffff",
+      fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif",
+      fontSize: "15px"
+    },
+    flowchart: { curve: "basis", htmlLabels: true, padding: 12 }
+  });
+</script>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e4e1db;
+    --bg: #faf9f6;
+    --card: #ffffff;
+    --accent: #c96442;
+    --accent-soft: #f6e9e2;
+  }
+  html, body { background: var(--bg); color: var(--ink); }
+  body {
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif {
+    font-family: "Tiempos Headline", "Iowan Old Style", Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+  .accent-bar {
+    background: linear-gradient(90deg, var(--accent) 0%, #e8a07c 100%);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); }
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .rule-card { border-left: 3px solid var(--accent); }
+  .table-head {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+  .mermaid-wrap {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 20px;
+    overflow-x: auto;
+  }
+  .mermaid { display: flex; justify-content: center; }
+  .container-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .rep-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .rep-row:last-child { border-bottom: 0; }
+  .rep-badge {
+    flex-shrink: 0;
+    width: 72px;
+    text-align: center;
+    padding: 4px 0;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .b-raw { background: #1a1a1a; color: #faf9f6; }
+  .b-md { background: var(--accent); color: #fff; }
+  .b-prev { background: #2f6f58; color: #fff; }
+  .b-tr { background: #5f6fa3; color: #fff; }
+  .link-arrow::after { content: " →"; }
+  .grid-divider {
+    background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
+    height: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="border-b border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-7 h-7 rounded-md accent-bar"></div>
+      <span class="font-semibold tracking-tight">AI Office Blueprint</span>
+    </div>
+    <div class="hidden md:flex items-center gap-6 text-sm text-stone-500">
+      <a href="#storage" class="hover:text-stone-900">Storage</a>
+      <a href="#pipeline" class="hover:text-stone-900">Pipeline</a>
+      <a href="#components" class="hover:text-stone-900">Components</a>
+      <a href="#rules" class="hover:text-stone-900">Rules</a>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="max-w-6xl mx-auto px-6 pt-20 pb-16">
+  <div class="max-w-3xl">
+    <div class="pill mb-6">
+      <span class="pill-dot"></span>
+      Architecture overview
+    </div>
+    <h1 class="serif text-5xl md:text-6xl font-medium leading-[1.05] tracking-tight mb-6">
+      Multi-client AI office with a shared artifact store and a client-facing portal.
+    </h1>
+    <p class="text-lg text-stone-600 leading-relaxed max-w-2xl">
+      An architecture for a service organization that uses Claude Cowork on its employees' desktops,
+      ingests work products from many channels, normalizes them into a single container format,
+      and exposes them to each client through a secure web portal with a RAG-powered chat.
+    </p>
+    <div class="flex flex-wrap gap-3 mt-8">
+      <span class="pill"><span class="pill-dot"></span>Claude Cowork</span>
+      <span class="pill"><span class="pill-dot"></span>Central API</span>
+      <span class="pill"><span class="pill-dot"></span>Postgres + pgvector</span>
+      <span class="pill"><span class="pill-dot"></span>S3 object storage</span>
+      <span class="pill"><span class="pill-dot"></span>Next.js portal</span>
+      <span class="pill"><span class="pill-dot"></span>Row-Level Security</span>
+    </div>
+  </div>
+</section>
+
+<!-- Principles strip -->
+<section class="bg-stone-100 border-y border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
+    <div>
+      <div class="section-label mb-2">Principle 01</div>
+      <div class="serif text-2xl mb-2">Collect anywhere, write in one place.</div>
+      <p class="text-stone-600 text-sm leading-relaxed">Data flows in from many sources, but every artifact is written through a single, audited pipeline.</p>
+    </div>
+    <div>
+      <div class="section-label mb-2">Principle 02</div>
+      <div class="serif text-2xl mb-2">Raw is the truth; Markdown is the language of AI.</div>
+      <p class="text-stone-600 text-sm leading-relaxed">Originals are preserved for legal correctness. AI works with a normalized representation that is uniform across sources.</p>
+    </div>
+    <div>
+      <div class="section-label mb-2">Principle 03</div>
+      <div class="serif text-2xl mb-2">Isolation is enforced at the database level.</div>
+      <p class="text-stone-600 text-sm leading-relaxed">A misconfigured query cannot leak across clients — Row-Level Security makes cross-tenant reads physically impossible.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Storage model -->
+<section id="storage" class="max-w-6xl mx-auto px-6 py-20">
+  <div class="grid md:grid-cols-[1fr_1.4fr] gap-12 items-start">
+    <div>
+      <div class="section-label mb-3">Storage Model</div>
+      <h2 class="serif text-4xl md:text-5xl tracking-tight mb-5 leading-[1.1]">
+        An artifact is a container of representations.
+      </h2>
+      <p class="text-stone-600 leading-relaxed mb-4">
+        Every deliverable — a contract, a meeting transcript, an email thread, a spreadsheet —
+        is stored as a single versioned container. Inside the container live multiple
+        representations of the same underlying content, each optimized for a different consumer.
+      </p>
+      <p class="text-stone-600 leading-relaxed">
+        The AI layer only ever reads the canonical Markdown. The client only ever sees raw and preview.
+        This separation is what makes the system both legally correct and AI-native at the same time.
+      </p>
+    </div>
+
+    <div class="container-card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <div class="text-xs text-stone-500 uppercase tracking-wider">Artifact</div>
+          <div class="mono text-sm text-stone-700">id · client_id · type · tags · visibility</div>
+        </div>
+        <div class="pill"><span class="pill-dot"></span>v3</div>
+      </div>
+      <div class="rep-row">
+        <span class="rep-badge b-raw">Raw</span>
+        <div>
+          <div class="font-medium">Original file as it arrived</div>
+          <div class="text-sm text-stone-500">pdf, docx, mp3, eml · the source of truth for the client and for legal.</div>
+        </div>
+      </div>
+      <div class="rep-row">
+        <span class="rep-badge b-md">Canonical</span>
+        <div>
+          <div class="font-medium">Normalized Markdown</div>
+          <div class="text-sm text-stone-500">A uniform format across all sources. This is the only representation the AI ever sees.</div>
+        </div>
+      </div>
+      <div class="rep-row">
+        <span class="rep-badge b-prev">Preview</span>
+        <div>
+          <div class="font-medium">Rendered HTML / PDF</div>
+          <div class="text-sm text-stone-500">Fast browser rendering in the client portal without downloading the original.</div>
+        </div>
+      </div>
+      <div class="rep-row">
+        <span class="rep-badge b-tr">Transcript</span>
+        <div>
+          <div class="font-medium">Speech-to-text output</div>
+          <div class="text-sm text-stone-500">When the source is audio or video — searchable, citeable text alongside the original recording.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pipeline diagram -->
+<section id="pipeline" class="bg-stone-100 border-y border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-20">
+    <div class="max-w-3xl mb-10">
+      <div class="section-label mb-3">Pipeline</div>
+      <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
+        From many sources to one artifact store.
+      </h2>
+      <p class="text-stone-600 leading-relaxed">
+        Data is collected either through Claude Cowork's native connectors on each employee's desktop,
+        or through small integrator services for sources Cowork does not yet support. Both paths land
+        in a single inbox. A triage agent then classifies each event, extracts its canonical form,
+        and writes it to storage with embeddings ready for retrieval.
+      </p>
+    </div>
+    <div class="mermaid-wrap">
+      <div class="mermaid">
+flowchart TB
+  subgraph S[ ]
+    direction LR
+    S1[Gmail]:::src
+    S2[Drive]:::src
+    S3[Calendar]:::src
+    S4[Fireflies]:::src
+    S5[Telegram]:::src
+    S6[Slack]:::src
+  end
+
+  S1 --> B1
+  S2 --> B1
+  S3 --> B1
+  S4 --> B2
+  S5 --> B2
+  S6 --> B2
+
+  B1[Cowork connectors &#40;on desktops&#41;]:::bridge
+  B2[Integrator services &#40;webhook / cron&#41;]:::bridge
+
+  B1 --> IN[Ingest · Inbox]:::core
+  B2 --> IN
+
+  IN --> TR[Triage agent · rules]:::core
+  TR --> EX[Extract &amp; Normalize]:::core
+  EX --> ST[(Storage · Postgres + pgvector + S3)]:::store
+
+  ST --> CW[Cowork plugin &#40;employees&#41;]:::consumer
+  ST --> CP[Client Portal · docs + RAG chat]:::consumer
+
+  classDef src fill:#fff,stroke:#c7c2b8,stroke-width:1px,color:#1a1a1a,rx:6,ry:6;
+  classDef bridge fill:#f6e9e2,stroke:#c96442,stroke-width:1px,color:#1a1a1a,rx:8,ry:8;
+  classDef core fill:#ffffff,stroke:#1a1a1a,stroke-width:1.4px,color:#1a1a1a,rx:8,ry:8;
+  classDef store fill:#1a1a1a,stroke:#1a1a1a,color:#faf9f6,rx:4,ry:4;
+  classDef consumer fill:#ede9e2,stroke:#7c7c7c,stroke-width:1px,color:#1a1a1a,rx:8,ry:8;
+      </div>
+    </div>
+    <div class="text-center text-xs text-stone-500 mt-4">Data flows left-to-right from sources to consumers; the inbox is the single point of write.</div>
+  </div>
+</section>
+
+<!-- Components -->
+<section id="components" class="max-w-6xl mx-auto px-6 py-20">
+  <div class="mb-10 max-w-3xl">
+    <div class="section-label mb-3">Components</div>
+    <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
+      What each layer is, and why it exists.
+    </h2>
+    <p class="text-stone-600 leading-relaxed">
+      Each component has a narrow, well-defined role. Boundaries between them are explicit,
+      which means any single layer can be replaced without rewriting the rest of the system.
+    </p>
+  </div>
+
+  <div class="card overflow-hidden">
+    <table class="w-full text-left">
+      <thead class="bg-stone-50">
+        <tr class="border-b border-stone-200">
+          <th class="px-5 py-4 table-head w-48">Layer</th>
+          <th class="px-5 py-4 table-head">Made of</th>
+          <th class="px-5 py-4 table-head">Role</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-stone-100 text-sm">
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Sources</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Gmail, Drive, Calendar, Fireflies, Telegram, Slack, and others.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Where raw data originates.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Bridges</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Claude Cowork connectors on desktops plus small integrator services on the backend.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Bring every source to the same entry point. Use Cowork where native connectors exist; write a service otherwise.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Ingest (Inbox)</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Postgres <span class="mono">inbox_events</span> table and S3 bucket.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Single point of write. Deduplicates by source ID, audits every event, preserves order.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Triage</td>
+          <td class="px-5 py-4 text-stone-600 align-top">A Claude-powered worker with a centralized rulebook.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Decides which client an event belongs to, what type it is, and which tags to apply.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Extract &amp; Normalize</td>
+          <td class="px-5 py-4 text-stone-600 align-top">PDF parser, office-to-markdown converter, speech-to-text, email parser.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Produces canonical Markdown (and a transcript if relevant) from any raw input.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Artifact Storage</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Postgres for metadata and versions; pgvector for embeddings; S3 for binary representations.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Persists the artifact container. Raw is kept as the truth; Markdown is the working copy for AI.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Central API</td>
+          <td class="px-5 py-4 text-stone-600 align-top">A typed HTTP service with endpoints for artifacts, search, and chat.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">The only way anything reads from or writes to storage.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Cowork Plugin</td>
+          <td class="px-5 py-4 text-stone-600 align-top">An MCP server shipped as a plugin, distributed via a private marketplace.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Gives employees seamless read and write access to storage from inside Claude Cowork. Tokens live in the OS keychain and never appear in prompts.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Client Portal</td>
+          <td class="px-5 py-4 text-stone-600 align-top">A Next.js application with document view, RAG chat, comments, and human escalation.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">The only surface a client ever sees. Scoped to their own data by design.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Auth &amp; RLS</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Magic-link or SSO auth plus Postgres Row-Level Security policies.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Separates employees from clients, and each client from every other, at the database level.</td>
+        </tr>
+        <tr>
+          <td class="px-5 py-4 font-semibold align-top">Governance</td>
+          <td class="px-5 py-4 text-stone-600 align-top">A central <span class="mono">AI_Rules.md</span> plus org-provisioned skills shipped to every user.</td>
+          <td class="px-5 py-4 text-stone-600 align-top">Makes sure every Cowork session operates under the same safety, compliance, and brand rules.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Portal + RAG -->
+<section class="bg-stone-900 text-stone-100">
+  <div class="max-w-6xl mx-auto px-6 py-20">
+    <div class="grid md:grid-cols-[1fr_1.3fr] gap-12 items-start">
+      <div>
+        <div class="section-label mb-3" style="color:#e8a07c;">Client Experience</div>
+        <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-5">
+          A portal the client owns, not a black box.
+        </h2>
+        <p class="text-stone-300 leading-relaxed mb-4">
+          The portal gives every client a live view of the work produced on their behalf —
+          organized, searchable, and answerable. No shared inboxes, no email threads,
+          no "let me get back to you tomorrow."
+        </p>
+        <p class="text-stone-400 leading-relaxed">
+          Behind the chat is a retrieval-augmented pipeline that operates strictly within
+          the client's own scope. Citations link back to the exact document and page that
+          produced every statement.
+        </p>
+      </div>
+      <div class="grid gap-4">
+        <div class="bg-stone-800 border border-stone-700 rounded-xl p-5">
+          <div class="text-xs uppercase tracking-widest text-stone-500 mb-2">Documents</div>
+          <div class="text-lg font-medium mb-1">Every deliverable, one place.</div>
+          <div class="text-stone-400 text-sm leading-relaxed">Filter by project, tag, or date. Preview inline. Download with time-limited URLs. Comment without leaving the page.</div>
+        </div>
+        <div class="bg-stone-800 border border-stone-700 rounded-xl p-5">
+          <div class="text-xs uppercase tracking-widest text-stone-500 mb-2">RAG chat</div>
+          <div class="text-lg font-medium mb-1">Ask questions about your own data.</div>
+          <div class="text-stone-400 text-sm leading-relaxed">A grounded assistant scoped to the client's public artifacts. Streamed answers, citations, and a human-escalation button whenever the answer is not in the documents.</div>
+        </div>
+        <div class="bg-stone-800 border border-stone-700 rounded-xl p-5">
+          <div class="text-xs uppercase tracking-widest text-stone-500 mb-2">Feedback loop</div>
+          <div class="text-lg font-medium mb-1">Comments become work items.</div>
+          <div class="text-stone-400 text-sm leading-relaxed">A comment in the portal creates a notification back to the team's Cowork, closing the loop between client and delivery without a separate tool.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Rules -->
+<section id="rules" class="max-w-6xl mx-auto px-6 py-20">
+  <div class="mb-12 max-w-3xl">
+    <div class="section-label mb-3">Operating Rules</div>
+    <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
+      Six rules that keep the system coherent.
+    </h2>
+    <p class="text-stone-600 leading-relaxed">
+      Architecture decisions compound. These are the non-negotiable invariants —
+      the ones that remain true whether the system has two clients or two hundred.
+    </p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="rule-card card p-6">
+      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 01</div>
+      <div class="text-lg font-semibold mb-1">Writes are always centralized.</div>
+      <div class="text-stone-600 text-sm leading-relaxed">Reads and collection can be distributed. Storage has a single writer: the central API.</div>
+    </div>
+    <div class="rule-card card p-6">
+      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 02</div>
+      <div class="text-lg font-semibold mb-1">Raw for the client, Markdown for the AI.</div>
+      <div class="text-stone-600 text-sm leading-relaxed">Originals are evidence. Normalized Markdown is the working substrate for every AI operation.</div>
+    </div>
+    <div class="rule-card card p-6">
+      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 03</div>
+      <div class="text-lg font-semibold mb-1">Tenant isolation lives in the database.</div>
+      <div class="text-stone-600 text-sm leading-relaxed">Row-Level Security in Postgres makes cross-tenant reads impossible, regardless of application bugs.</div>
+    </div>
+    <div class="rule-card card p-6">
+      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 04</div>
+      <div class="text-lg font-semibold mb-1">Tokens never appear in prompts.</div>
+      <div class="text-stone-600 text-sm leading-relaxed">Secrets live in the OS keychain or environment. The MCP server attaches them to outbound requests — the model never sees them.</div>
+    </div>
+    <div class="rule-card card p-6">
+      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 05</div>
+      <div class="text-lg font-semibold mb-1">Default visibility is internal.</div>
+      <div class="text-stone-600 text-sm leading-relaxed">A deliverable becomes visible to the client only through an explicit promotion. Silence is the safe default.</div>
+    </div>
+    <div class="rule-card card p-6">
+      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 06</div>
+      <div class="text-lg font-semibold mb-1">There is always a path to a human.</div>
+      <div class="text-stone-600 text-sm leading-relaxed">Every AI surface — in Cowork and in the portal — exposes a first-class way to hand a question to a person.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="border-t border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-10 flex flex-wrap items-center justify-between text-sm text-stone-500 gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-5 h-5 rounded accent-bar"></div>
+      <span>AI Office Blueprint</span>
+    </div>
+    <div class="text-stone-400">Architecture overview · for discussion purposes</div>
+  </div>
+</footer>
+
+</body>
+</html>
