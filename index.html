@@ -140,8 +140,6 @@
   }
   .b-raw { background: #1a1a1a; color: #faf9f6; }
   .b-md { background: var(--accent); color: #fff; }
-  .b-prev { background: var(--green); color: #fff; }
-  .b-tr { background: var(--blue); color: #fff; }
 
   /* Ingest paths */
   .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -180,100 +178,29 @@
   .seq-msg .arr { color: var(--accent); font-weight: 700; margin: 0 6px; }
   .seq-msg b { color: var(--ink); }
   .seq-note { color: var(--muted); font-size: 12px; font-style: italic; margin-top: 3px; }
-
-  /* Sidebar */
-  :root {
-    --sidebar-w: 220px;
-    --gold-bg: #3d2f11;
-    --gold-active: #7a5c22;
-    --gold-text: #c7a96c;
-    --gold-text-hi: #f4ead0;
-  }
-  .sidebar {
-    position: fixed; top: 0; left: 0;
-    height: 100vh; width: var(--sidebar-w);
-    background: var(--gold-bg);
-    color: var(--gold-text);
-    overflow-y: auto;
-    z-index: 50;
-    padding: 22px 0 20px 0;
-  }
-  .sidebar-brand {
-    display: flex; align-items: center; gap: 10px;
-    padding: 0 20px 20px 20px;
-    color: var(--gold-text-hi);
-    font-weight: 600; font-size: 14px;
-    letter-spacing: -0.01em;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    margin-bottom: 14px;
-  }
-  .sidebar-brand .brand-mark {
-    width: 22px; height: 22px; border-radius: 6px;
-    background: linear-gradient(90deg, #c9a24a 0%, #e8c890 100%);
-    flex-shrink: 0;
-  }
-  .sidebar-nav { display: flex; flex-direction: column; }
-  .sidebar-nav a {
-    display: block;
-    padding: 12px 20px;
-    color: var(--gold-text);
-    font-size: 13px; line-height: 1.35;
-    text-decoration: none;
-    transition: background 0.12s, color 0.12s;
-  }
-  .sidebar-nav a:hover {
-    color: var(--gold-text-hi);
-    background: rgba(255,255,255,0.04);
-  }
-  .sidebar-nav a.active {
-    background: var(--gold-active);
-    color: #ffffff;
-    font-weight: 600;
-  }
-  .sidebar-nav a .nav-num {
-    display: inline-block;
-    width: 24px;
-    color: inherit; opacity: 0.7;
-    font-family: ui-monospace, monospace;
-    font-size: 11px;
-    letter-spacing: 0.02em;
-  }
-  .sidebar-nav a.active .nav-num { opacity: 0.9; }
-  .sidebar-footer {
-    margin-top: auto;
-    padding: 18px 20px 0 20px;
-    font-size: 11px; color: rgba(244,234,208,0.5);
-    border-top: 1px solid rgba(255,255,255,0.06);
-  }
-
-  main.content { margin-left: var(--sidebar-w); }
-  @media (max-width: 900px) {
-    .sidebar { display: none; }
-    main.content { margin-left: 0; }
-  }
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-mark"></div>
-    <span>AI Office Blueprint</span>
+<!-- Header -->
+<header class="border-b border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-7 h-7 rounded-md accent-bar"></div>
+      <span class="font-semibold tracking-tight">AI Office Blueprint</span>
+    </div>
+    <div class="hidden md:flex items-center gap-5 text-sm text-stone-500">
+      <a href="#team" class="hover:text-stone-900">Team</a>
+      <a href="#places" class="hover:text-stone-900">Where it lives</a>
+      <a href="#cowork" class="hover:text-stone-900">Cowork</a>
+      <a href="#skills" class="hover:text-stone-900">Skills</a>
+      <a href="#docs" class="hover:text-stone-900">Documents</a>
+      <a href="#ingest" class="hover:text-stone-900">Ingest</a>
+      <a href="#employee" class="hover:text-stone-900">Employee</a>
+      <a href="#client" class="hover:text-stone-900">Client</a>
+    </div>
   </div>
-  <nav class="sidebar-nav" id="sidebarNav">
-    <a href="#team"     data-section="team"><span class="nav-num">01</span>Team</a>
-    <a href="#places"   data-section="places"><span class="nav-num">02</span>Where it lives</a>
-    <a href="#cowork"   data-section="cowork"><span class="nav-num">03</span>Cowork role</a>
-    <a href="#skills"   data-section="skills"><span class="nav-num">04</span>Skills &amp; rules</a>
-    <a href="#docs"     data-section="docs"><span class="nav-num">05</span>Documents</a>
-    <a href="#ingest"   data-section="ingest"><span class="nav-num">06</span>Ingest</a>
-    <a href="#employee" data-section="employee"><span class="nav-num">07</span>Employee access</a>
-    <a href="#client"   data-section="client"><span class="nav-num">08</span>Client access</a>
-  </nav>
-</aside>
-
-<main class="content">
+</header>
 
 <!-- Hero -->
 <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
@@ -364,7 +291,7 @@
         <ul>
           <li><b>API</b> — the one way to read or write anything.</li>
           <li><b>Postgres + pgvector</b> — metadata, versions, embeddings.</li>
-          <li><b>S3 bucket</b> — raw files, previews, transcripts.</li>
+          <li><b>S3 bucket</b> — raw original files.</li>
           <li><b>Inbox table</b> — single entry point for all ingested events.</li>
           <li><b>Row-Level Security</b> — tenant isolation at the DB level.</li>
         </ul>
@@ -511,18 +438,18 @@
   <div class="grid md:grid-cols-[1fr_1.3fr] gap-10 items-start">
     <div>
       <p class="text-stone-700 leading-relaxed mb-3">
-        Every document in the system is a <b>container</b>, not a single file. The container
-        holds several parallel representations of the same underlying content, each tuned
-        for a different consumer.
+        Every document in the system is a <b>container</b> with exactly two representations:
+        the original file, and a canonical Markdown version of its contents. Nothing more.
       </p>
       <p class="text-stone-700 leading-relaxed mb-3">
         The AI operates exclusively on the canonical Markdown. The client sees the raw
-        original and a rendered preview. The container itself is versioned — every update
-        creates a new version with its own representations.
+        original, rendered on the fly by a viewer component chosen for the file's mime type —
+        there is no pre-generated preview in the store.
       </p>
       <p class="text-stone-700 leading-relaxed">
-        Binary data (PDFs, images, audio) lives in object storage; metadata, versions,
-        and text chunks live in Postgres.
+        When the raw is audio or video, its canonical is a timestamped transcript —
+        still Markdown, produced by Whisper during extraction. So <em>transcript</em> is not
+        a third format; it is simply what canonical looks like for that kind of source.
       </p>
     </div>
 
@@ -538,28 +465,14 @@
         <span class="rep-badge b-raw">Raw</span>
         <div>
           <div class="font-medium">Original file</div>
-          <div class="text-sm text-stone-500">pdf · docx · mp3 · eml — the source of truth.</div>
+          <div class="text-sm text-stone-500">pdf · docx · mp3 · eml · any mime type — the source of truth, stored in S3.</div>
         </div>
       </div>
       <div class="rep-row">
         <span class="rep-badge b-md">Canonical</span>
         <div>
           <div class="font-medium">Normalized Markdown</div>
-          <div class="text-sm text-stone-500">Uniform format across sources. The AI reads only this.</div>
-        </div>
-      </div>
-      <div class="rep-row">
-        <span class="rep-badge b-prev">Preview</span>
-        <div>
-          <div class="font-medium">HTML / PDF preview</div>
-          <div class="text-sm text-stone-500">For fast in-portal display.</div>
-        </div>
-      </div>
-      <div class="rep-row">
-        <span class="rep-badge b-tr">Transcript</span>
-        <div>
-          <div class="font-medium">Speech-to-text output</div>
-          <div class="text-sm text-stone-500">For audio or video sources.</div>
+          <div class="text-sm text-stone-500">Uniform format across all sources. For audio/video this is a timestamped transcript. The AI reads only this.</div>
         </div>
       </div>
     </div>
@@ -662,8 +575,8 @@
 
     <div class="mt-8 text-sm text-stone-500 max-w-3xl">
       Once in the inbox, the flow is identical: triage determines the client_id and type,
-      the extractor produces canonical Markdown and (if needed) a transcript, chunks are
-      embedded, and the container is written in a single transaction.
+      the extractor produces the canonical Markdown (a timestamped transcript for audio / video),
+      chunks are embedded, and the container is written in a single transaction.
     </div>
   </div>
 </section>
@@ -737,12 +650,12 @@
         <div class="text-lg font-semibold mt-1 mb-2">Browse and download</div>
         <p class="text-stone-400 text-sm leading-relaxed mb-3">
           A list of artifacts marked <em>public</em> for this client. Filter by project, tag, or
-          date; preview inline; download originals via time-limited URLs; comment without
-          leaving the page.
+          date; view inline through a viewer chosen by the file's mime type; download
+          originals via time-limited URLs; comment without leaving the page.
         </p>
         <ul class="text-sm space-y-1">
           <li class="text-stone-400">· Loads <span class="mono">GET /artifacts</span> — returns only this client's rows.</li>
-          <li class="text-stone-400">· Previews are rendered from the stored preview representation.</li>
+          <li class="text-stone-400">· Viewer is picked per mime type (PDF.js for PDFs, audio player for mp3, etc.).</li>
           <li class="text-stone-400">· Raw originals are served from S3 via presigned URLs.</li>
         </ul>
       </div>
@@ -827,33 +740,5 @@
   </div>
 </footer>
 
-</main>
-
-<script>
-  // Scroll-spy: highlight the sidebar item for the currently visible section
-  (function () {
-    const links = Array.from(document.querySelectorAll('#sidebarNav a'));
-    const sections = links
-      .map(a => document.getElementById(a.dataset.section))
-      .filter(Boolean);
-
-    function setActive(id) {
-      links.forEach(a => a.classList.toggle('active', a.dataset.section === id));
-    }
-
-    // Initial state
-    if (sections[0]) setActive(sections[0].id);
-
-    const io = new IntersectionObserver((entries) => {
-      // Pick the entry closest to the top of the viewport that is intersecting
-      const visible = entries
-        .filter(e => e.isIntersecting)
-        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-      if (visible[0]) setActive(visible[0].target.id);
-    }, { rootMargin: '-30% 0px -55% 0px', threshold: 0 });
-
-    sections.forEach(s => io.observe(s));
-  })();
-</script>
 </body>
 </html>
