@@ -157,6 +157,68 @@
     color: #333; padding: 3px 0;
   }
 
+  /* Ingest two-track diagram */
+  .ingest-diagram {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  .track {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .track-head {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--muted); margin-bottom: 12px; font-weight: 600;
+  }
+  .track-node {
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; line-height: 1.4;
+    background: #fff;
+  }
+  .track-node .step-num {
+    display: inline-block; width: 18px;
+    font-family: ui-monospace, monospace; color: var(--muted);
+    font-size: 11px; font-weight: 600;
+  }
+  .track-node.cowork {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .track-node.cowork .tag-cowork {
+    display: inline-block; margin-left: 6px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--accent); text-transform: uppercase;
+  }
+  .track-arrow {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 6px 0;
+  }
+  .ingest-merge {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--accent);
+    font-size: 22px; font-weight: 700;
+    padding: 4px 0;
+  }
+  .ingest-finish {
+    grid-column: 1 / -1;
+    background: var(--ink); color: #faf9f6;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+  }
+  .ingest-finish .f-title { font-weight: 600; font-size: 15px; }
+  .ingest-finish .f-sub { color: #bbb; font-size: 12px; margin-top: 4px; }
+  @media (max-width: 800px) {
+    .ingest-diagram { grid-template-columns: 1fr; }
+  }
+
   /* Request sequence */
   .seq {
     background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 22px;
@@ -487,145 +549,164 @@
       <h2 class="serif text-3xl md:text-4xl tracking-tight">How documents get ingested</h2>
     </div>
     <p class="text-stone-600 leading-relaxed mb-8 max-w-3xl">
-      Ingest is a four-stage pipeline. Collection brings raw material into the inbox.
-      A deterministic extractor turns raw into canonical Markdown. <b>A Cowork agent then
-      takes over as the triage worker</b> — reading the canonical MD, classifying it, assigning
-      it to the right client, and publishing it as an artifact. Embedding follows.
+      Ingest has two parallel tracks that merge into one final step. When a source has a
+      native Cowork connector, <b>Cowork itself performs the collection, extraction, and
+      triage</b> — it is the ingester. When a source has no connector (Telegram, Fireflies,
+      third-party forwards), a small integrator service collects instead, a deterministic
+      extractor converts the raw file, and a Cowork agent handles triage from that point on.
+      In both tracks, Cowork is the active worker whenever judgement is required.
     </p>
 
-    <!-- Four-stage flow -->
-    <div class="card p-6 mb-10">
-      <div class="flow">
-        <div class="flow-node">
-          <div>
-            <div class="font-semibold">1 · Collect</div>
-            <div class="text-xs text-stone-500">4 collection paths</div>
-          </div>
+    <!-- Two-track ingest diagram -->
+    <div class="ingest-diagram mb-10">
+      <!-- Track A: Cowork-driven -->
+      <div class="track">
+        <div class="track-head">Track A · Cowork-driven</div>
+        <div class="track-node cowork">
+          <span class="step-num">1</span><b>Collect</b> via Cowork connector (Gmail / Drive / Calendar)
+          <span class="tag-cowork">Cowork</span>
         </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <div>
-            <div class="font-semibold">2 · Extract</div>
-            <div class="text-xs text-stone-500">raw → canonical MD</div>
-          </div>
+        <div class="track-arrow">↓</div>
+        <div class="track-node cowork">
+          <span class="step-num">2</span><b>Extract</b> to canonical Markdown inline
+          <span class="tag-cowork">Cowork</span>
         </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node emph">
-          <div>
-            <div class="font-semibold">3 · Triage</div>
-            <div class="text-xs text-stone-500"><b>Cowork agent</b> on MD</div>
-          </div>
+        <div class="track-arrow">↓</div>
+        <div class="track-node cowork">
+          <span class="step-num">3</span><b>Triage</b> — same agent decides client, type, tags
+          <span class="tag-cowork">Cowork</span>
         </div>
       </div>
-      <div class="flow mt-3">
-        <div></div>
-        <div></div>
-        <div class="flow-arrow">↓</div>
-        <div></div>
-        <div></div>
-      </div>
-      <div class="flow">
-        <div></div>
-        <div></div>
-        <div class="flow-node primary">
-          <div>
-            <div class="font-semibold">4 · Store + Embed</div>
-            <div class="text-xs" style="color:#bbb">artifact is written, chunks are indexed</div>
-          </div>
+
+      <!-- Track B: External -->
+      <div class="track">
+        <div class="track-head">Track B · External source</div>
+        <div class="track-node">
+          <span class="step-num">1</span><b>Collect</b> via integrator service (webhook / user client)
         </div>
-        <div></div>
-        <div></div>
+        <div class="track-arrow">↓</div>
+        <div class="track-node">
+          <span class="step-num">2</span><b>Extract</b> with a deterministic parser (pdfplumber, pandoc, Whisper…)
+        </div>
+        <div class="track-arrow">↓</div>
+        <div class="track-node cowork">
+          <span class="step-num">3</span><b>Triage</b> — Cowork agent running server-side
+          <span class="tag-cowork">Cowork</span>
+        </div>
       </div>
+
+      <div class="ingest-merge">↓</div>
+
+      <div class="ingest-finish">
+        <div class="f-title">4 · Store &amp; embed</div>
+        <div class="f-sub">Single transaction writes artifact, version, representations, embedding chunks.</div>
+      </div>
+    </div>
+
+    <div class="mb-10 text-sm text-stone-500 max-w-3xl">
+      Cards highlighted in the warm color are performed by Cowork. The deterministic extractor
+      in Track B exists only because the integrator has delivered a raw binary without the
+      rich context Cowork has when it reads its own connectors.
     </div>
 
     <!-- Stage details -->
     <div class="grid md:grid-cols-2 gap-5 mb-10">
       <div class="card p-5">
-        <div class="section-label mb-2">Stage 1</div>
-        <div class="font-semibold text-lg mb-2">Collect</div>
+        <div class="section-label mb-2">Stage 1 · Collect</div>
+        <div class="font-semibold text-lg mb-2">Bring raw material in</div>
         <p class="text-stone-600 text-sm leading-relaxed mb-2">
-          A raw event — a file plus minimal metadata (source, sender, timestamp, message id) —
-          lands in the <span class="mono">inbox_events</span> table. Deduplication by source id,
-          full audit trail. Files go straight to S3; the inbox row references them.
+          <b>Track A:</b> Cowork reads the associate's own channels (Gmail, Drive, Calendar) through its
+          native connectors. It already knows <em>whose</em> mailbox it is reading — context travels with the data.
         </p>
-        <p class="text-stone-500 text-xs">Comes from one of four collection paths (see cards below).</p>
+        <p class="text-stone-600 text-sm leading-relaxed">
+          <b>Track B:</b> A small server-side integrator listens to an external source (Telegram user client,
+          Fireflies webhook, email alias, Slack webhook) and drops a raw file plus minimal metadata into the
+          <span class="mono">inbox_events</span> table. Deduplication by source id, full audit trail.
+        </p>
       </div>
       <div class="card p-5">
-        <div class="section-label mb-2">Stage 2</div>
-        <div class="font-semibold text-lg mb-2">Extract (deterministic)</div>
+        <div class="section-label mb-2">Stage 2 · Extract</div>
+        <div class="font-semibold text-lg mb-2">Raw → canonical Markdown</div>
         <p class="text-stone-600 text-sm leading-relaxed mb-2">
-          A small worker converts the raw file into canonical Markdown. No AI decisions here —
-          just format conversion: <span class="mono">pdf → pdfplumber</span>,
+          <b>Track A:</b> Cowork does this inline — it is already reading the content, it just needs
+          to commit the canonical MD to storage.
+        </p>
+        <p class="text-stone-600 text-sm leading-relaxed">
+          <b>Track B:</b> A deterministic worker converts the raw binary:
+          <span class="mono">pdf → pdfplumber</span>,
           <span class="mono">docx → pandoc</span>,
           <span class="mono">eml → email-parser</span>,
           <span class="mono">mp3/mp4 → Whisper</span>,
-          <span class="mono">html → readability</span>.
+          <span class="mono">html → readability</span>. No AI decisions here — just format conversion.
         </p>
-        <p class="text-stone-500 text-xs">The canonical MD is attached to the inbox event and made available for the next stage.</p>
       </div>
       <div class="card p-5" style="border-color: var(--accent);">
         <div class="section-label mb-2">Stage 3 · <span style="color: var(--accent)">Cowork as triage</span></div>
-        <div class="font-semibold text-lg mb-2">Triage (AI)</div>
+        <div class="font-semibold text-lg mb-2">Classify &amp; publish</div>
         <p class="text-stone-600 text-sm leading-relaxed mb-2">
-          A dedicated Cowork agent — running on the server, not on an associate's desktop —
-          watches a feed of freshly extracted canonical MDs. For each one, it decides:
+          In both tracks, a Cowork agent reads the canonical MD and decides:
         </p>
         <ul class="text-sm space-y-1.5 text-stone-700 mb-2">
-          <li>· Which <span class="mono">client_id</span> this belongs to (matching senders, chats, domains against the client directory).</li>
+          <li>· Which <span class="mono">client_id</span> this belongs to.</li>
           <li>· What <span class="mono">type</span> it is (contract, email, meeting, note, spec, invoice).</li>
-          <li>· What <span class="mono">tags</span> to apply (project, phase, topic).</li>
+          <li>· What <span class="mono">tags</span> to apply.</li>
           <li>· Default <span class="mono">visibility = internal</span>, with promotion rules from <span class="mono">AI_Rules.md</span>.</li>
           <li>· Unclear cases → <em>buffer</em>, where a human decides in the admin panel.</li>
         </ul>
-        <p class="text-stone-500 text-xs">Same MCP plugin, same rulebook, same tools — just a long-running agent instead of an interactive session.</p>
+        <p class="text-stone-500 text-xs">
+          In Track A this is the same agent that collected and extracted. In Track B it is a long-running
+          Cowork process on the server. Same MCP plugin, same skills, same rulebook.
+        </p>
       </div>
       <div class="card p-5">
-        <div class="section-label mb-2">Stage 4</div>
-        <div class="font-semibold text-lg mb-2">Store &amp; embed</div>
+        <div class="section-label mb-2">Stage 4 · Store + Embed</div>
+        <div class="font-semibold text-lg mb-2">Commit the container</div>
         <p class="text-stone-600 text-sm leading-relaxed mb-2">
-          Once the Cowork agent has decided, a single transaction writes the artifact, its
-          version, both representations (raw + canonical), and the embedding chunks into
-          Postgres + pgvector.
+          One transaction writes the artifact, its version, both representations (raw + canonical),
+          and the embedding chunks into Postgres + pgvector.
         </p>
-        <p class="text-stone-500 text-xs">From this point the artifact is fully available to associates and — once promoted — to the client.</p>
+        <p class="text-stone-500 text-xs">From this point the artifact is fully available to associates, and — once promoted — to the client.</p>
       </div>
     </div>
 
     <!-- Collection paths -->
     <div class="mb-4">
-      <div class="section-label mb-2">Stage 1 · The four collection paths</div>
+      <div class="section-label mb-2">Collection paths — which track each uses</div>
       <p class="text-stone-600 leading-relaxed text-sm max-w-3xl">
-        Every collection path feeds the same inbox; everything after the inbox is identical.
+        Four ways content enters the system. The first two are Cowork-driven (Track A);
+        the last two are external (Track B).
       </p>
     </div>
     <div class="paths">
-      <div class="path-card">
-        <h4>Path 01 · Employee push</h4>
+      <div class="path-card" style="border-color: var(--accent);">
+        <h4>Path 01 · Employee push · Track A</h4>
         <div class="name">Associate runs <span class="mono">/save-artifact</span> in Cowork</div>
-        <div class="step">· Cowork skill picks up the file</div>
+        <div class="step">· Cowork itself performs collect + extract + triage in one step</div>
         <div class="step">· MCP plugin attaches the bearer token</div>
-        <div class="step">· API receives it with the project's <span class="mono">client_id</span> already set — triage is skipped for this path</div>
+        <div class="step">· Client_id is already set by the associate's project context</div>
         <div class="step"><b>Used for:</b> anything the associate produces directly in Cowork.</div>
       </div>
 
-      <div class="path-card">
-        <h4>Path 02 · Cowork connector forward</h4>
+      <div class="path-card" style="border-color: var(--accent);">
+        <h4>Path 02 · Cowork connector · Track A</h4>
         <div class="name">Gmail / Drive / Calendar forward</div>
         <div class="step">· Cowork's native connector reads the associate's account</div>
-        <div class="step">· A forward-to-archive skill pushes matching messages to the inbox</div>
+        <div class="step">· A scheduled or on-demand skill reads, extracts, and forwards in one go</div>
+        <div class="step">· Cowork triages inline using what it already knows about the sender</div>
         <div class="step"><b>Used for:</b> email threads, shared drive files, calendar events.</div>
       </div>
 
       <div class="path-card">
-        <h4>Path 03 · Integrator service</h4>
+        <h4>Path 03 · Integrator service · Track B</h4>
         <div class="name">Telegram · Fireflies · Slack · etc.</div>
         <div class="step">· A small server-side service listens via webhook or user client</div>
         <div class="step">· Uploads the raw file, writes the inbox event</div>
+        <div class="step">· Deterministic extractor and server-side Cowork triage follow</div>
         <div class="step"><b>Used for:</b> sources without a native Cowork connector.</div>
       </div>
 
       <div class="path-card">
-        <h4>Path 04 · Email alias</h4>
+        <h4>Path 04 · Email alias · Track B</h4>
         <div class="name"><span class="mono">inbox+acme@firm.tld</span></div>
         <div class="step">· Anyone (even third-party tools) can forward to a per-client alias</div>
         <div class="step">· The alias is auto-tagged with the client, which narrows triage</div>
