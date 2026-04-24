@@ -378,7 +378,7 @@ erDiagram
     <div class="mermaid-wrap">
       <div class="mermaid">
 flowchart TB
-  subgraph S[ ]
+  subgraph SRC ["Sources"]
     direction LR
     S1[Gmail]:::src
     S2[Drive]:::src
@@ -395,17 +395,17 @@ flowchart TB
   S5 --> B2
   S6 --> B2
 
-  B1[Cowork connectors &#40;on desktops&#41;]:::bridge
-  B2[Integrator services &#40;webhook / cron&#41;]:::bridge
+  B1["Cowork connectors (on desktops)"]:::bridge
+  B2["Integrator services (webhook / cron)"]:::bridge
 
   B1 --> IN[Ingest · Inbox]:::core
   B2 --> IN
 
   IN --> TR[Triage agent · rules]:::core
-  TR --> EX[Extract &amp; Normalize]:::core
+  TR --> EX["Extract and Normalize"]:::core
   EX --> ST[(Storage · Postgres + pgvector + S3)]:::store
 
-  ST --> CW[Cowork plugin &#40;employees&#41;]:::consumer
+  ST --> CW["Cowork plugin (employees)"]:::consumer
   ST --> CP[Client Portal · docs + RAG chat]:::consumer
 
   classDef src fill:#fff,stroke:#c7c2b8,stroke-width:1px,color:#1a1a1a,rx:6,ry:6;
@@ -451,26 +451,26 @@ sequenceDiagram
   autonumber
   participant E as Employee
   participant CW as Claude Cowork
-  participant MCP as MCP Plugin (local)
+  participant MCP as "MCP Plugin (local)"
   participant API as Central API
-  participant DB as Postgres (RLS)
+  participant DB as "Postgres (RLS)"
   participant S3 as S3 Storage
-  participant Q as Extract + Embed Worker
+  participant Q as "Extract and Embed Worker"
 
-  E->>CW: /save-artifact &#40;file, title, tags&#41;
-  CW->>MCP: tool_call &#40;artifact payload + project client_id&#41;
-  Note over MCP: Reads bearer token<br/>from OS keychain
-  MCP->>API: POST /artifacts &#40;Bearer token&#41;
-  API->>API: Verify token scope<br/>includes client_id
+  E->>CW: /save-artifact (file, title, tags)
+  CW->>MCP: tool_call (artifact payload + project client_id)
+  Note over MCP: Reads bearer token / from OS keychain
+  MCP->>API: POST /artifacts (Bearer token)
+  API->>API: Verify token scope / includes client_id
   API->>S3: PUT raw representation
   API->>DB: INSERT artifact + version + representation
   DB-->>API: artifact_id, version_id
-  API-->>MCP: 201 Created &#40;artifact_id&#41;
-  MCP-->>CW: result &#40;link, id&#41;
-  API->>Q: enqueue &#40;artifact_id, version_id&#41;
+  API-->>MCP: 201 Created (artifact_id)
+  MCP-->>CW: result (link, id)
+  API->>Q: enqueue (artifact_id, version_id)
   Q->>S3: GET raw
-  Q->>Q: Extract &amp; normalize → MD
-  Q->>Q: Chunk &amp; embed
+  Q->>Q: Extract and normalize to MD
+  Q->>Q: Chunk and embed
   Q->>S3: PUT canonical + preview
   Q->>DB: INSERT representations + chunks + embeddings
       </div>
@@ -493,7 +493,7 @@ sequenceDiagram
       <div class="mermaid">
 sequenceDiagram
   autonumber
-  participant SRC as External source<br/>&#40;Telegram, Fireflies, …&#41;
+  participant SRC as "External source (Telegram, Fireflies, ...)"
   participant INT as Integrator service
   participant IN as Inbox table
   participant TR as Triage worker
@@ -501,21 +501,21 @@ sequenceDiagram
   participant DB as Postgres
   participant S3 as S3
 
-  SRC->>INT: event &#40;new message / transcript&#41;
+  SRC->>INT: event (new message / transcript)
   INT->>INT: Dedupe by source_id
-  INT->>S3: PUT raw media &#40;if any&#41;
-  INT->>IN: INSERT inbox_event &#40;source, source_id, payload&#41;
+  INT->>S3: PUT raw media (if any)
+  INT->>IN: INSERT inbox_event (source, source_id, payload)
   Note over IN: Audit log entry written
   TR->>IN: SELECT unprocessed events
-  TR->>TR: Apply rules &#40;which client, type, tags&#41;
+  TR->>TR: Apply rules (which client, type, tags)
   alt client_id identified
     TR->>EX: extract + normalize
     EX->>DB: INSERT artifact + version + representations
     EX->>DB: INSERT chunks + embeddings
     TR->>IN: mark event processed
   else unknown
-    TR->>IN: move to buffer &#40;client_id = null&#41;
-    Note over TR: Operator will assign<br/>via admin UI
+    TR->>IN: move to buffer (client_id = null)
+    Note over TR: Operator will assign / via admin UI
   end
       </div>
     </div>
@@ -538,25 +538,25 @@ sequenceDiagram
 sequenceDiagram
   autonumber
   participant C as Client browser
-  participant P as Portal &#40;Next.js&#41;
+  participant P as "Portal (Next.js)"
   participant API as Central API
-  participant DB as Postgres + pgvector &#40;RLS&#41;
+  participant DB as "Postgres + pgvector (RLS)"
   participant EM as Embeddings service
   participant LLM as Claude API
 
   C->>P: Types question
-  P->>API: POST /chat &#40;JWT, query&#41;
+  P->>API: POST /chat (JWT, query)
   API->>API: Decode JWT → client_id
-  API->>EM: embed &#40;query&#41;
+  API->>EM: embed (query)
   EM-->>API: vector
-  API->>DB: SELECT chunks WHERE client_id = $jwt<br/>AND visibility = 'public'<br/>ORDER BY embedding &lt;=&gt; $vector LIMIT 10
+  API->>DB: SELECT chunks WHERE client_id = $jwt AND visibility = public, ORDER BY vector distance to query LIMIT 10
   DB-->>API: top-K chunks + metadata
-  API->>LLM: messages + retrieved context<br/>system: "answer only from sources"
+  API->>LLM: messages + retrieved context / system: "answer only from sources"
   LLM-->>API: streamed tokens + citations
   API-->>P: SSE stream
   P-->>C: Rendered answer with citation links
-  Note over C,P: Citation click → opens<br/>source document at page
-  P->>API: POST /chat/log &#40;Q&A pair&#41;
+  Note over C,P: Citation click → opens / source document at page
+  P->>API: POST /chat/log (question+answer)
   API->>DB: INSERT chat_message, audit_log
       </div>
     </div>
@@ -584,7 +584,7 @@ stateDiagram-v2
   Extracted --> Indexed : Chunks + embeddings persisted
   Indexed --> Internal : Default visibility
   Internal --> Public : Employee promotes artifact
-  Public --> Internal : Employee demotes &#40;reversible&#41;
+  Public --> Internal : Employee demotes (reversible)
   Public --> Archived : Retention policy or manual
   Internal --> Archived : Retention policy or manual
   Archived --> [*]
