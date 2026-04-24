@@ -3,26 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI Office Blueprint — Multi-Client Architecture</title>
+<title>AI Office Blueprint — How it works for a small team</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script type="module">
-  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: "base",
-    themeVariables: {
-      primaryColor: "#f4f4f2",
-      primaryTextColor: "#1a1a1a",
-      primaryBorderColor: "#c96442",
-      lineColor: "#7c7c7c",
-      secondaryColor: "#ede9e2",
-      tertiaryColor: "#ffffff",
-      fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif",
-      fontSize: "15px"
-    },
-    flowchart: { curve: "basis", htmlLabels: true, padding: 12 }
-  });
-</script>
 <style>
   :root {
     --ink: #1a1a1a;
@@ -32,40 +14,21 @@
     --card: #ffffff;
     --accent: #c96442;
     --accent-soft: #f6e9e2;
+    --green: #2f6f58;
+    --blue: #5f6fa3;
+    --gold: #b8883e;
   }
   html, body { background: var(--bg); color: var(--ink); }
   body {
     font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
   }
   .serif {
     font-family: "Tiempos Headline", "Iowan Old Style", Georgia, serif;
     letter-spacing: -0.015em;
   }
-  .mono {
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-  }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-  }
-  .accent-bar {
-    background: linear-gradient(90deg, var(--accent) 0%, #e8a07c 100%);
-  }
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #fff;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .pill-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); }
+  .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+
   .section-label {
     font-size: 11px;
     text-transform: uppercase;
@@ -73,55 +36,150 @@
     color: var(--accent);
     font-weight: 600;
   }
-  .rule-card { border-left: 3px solid var(--accent); }
-  .table-head {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-  }
-  .mermaid-wrap {
-    background: #fff;
+  .card {
+    background: var(--card);
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 28px 20px;
-    overflow-x: auto;
   }
-  .mermaid { display: flex; justify-content: center; }
-  .container-card {
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: #fff;
+    font-size: 12px; color: var(--muted);
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); }
+  .accent-bar {
+    background: linear-gradient(90deg, var(--accent) 0%, #e8a07c 100%);
+  }
+  .num-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 28px; padding: 0 9px;
+    border-radius: 999px;
+    background: var(--ink); color: #faf9f6;
+    font-family: ui-monospace, monospace;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* "Where things live" diagram */
+  .place-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) { .place-grid { grid-template-columns: 1fr; } }
+  .place-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; min-height: 180px; position: relative;
+  }
+  .place-card h4 { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+  .place-card .place-sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+  .place-card ul { list-style: none; padding: 0; }
+  .place-card li {
+    font-size: 13px; color: #333;
+    padding: 6px 0; border-top: 1px dashed var(--line);
+  }
+  .place-card li:first-child { border-top: 0; padding-top: 0; }
+  .place-card .tag {
+    position: absolute; top: 18px; right: 18px;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Role cards */
+  .role-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .role-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 600; font-size: 14px;
+    font-family: ui-monospace, monospace;
+  }
+  .r-p { background: var(--ink); }
+  .r-a { background: var(--accent); }
+  .r-c { background: var(--green); }
+
+  /* Flow diagram (custom) */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+  .flow-node {
+    background: #fff; border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 10px; text-align: center; font-size: 13px; line-height: 1.4;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 76px;
+  }
+  .flow-arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-weight: 600; font-size: 18px;
+  }
+  .flow-node.primary { background: var(--ink); color: #faf9f6; border-color: var(--ink); }
+  .flow-node.emph { background: var(--accent-soft); border-color: var(--accent); }
+  @media (max-width: 800px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+
+  /* Container visualization */
+  .container-box {
+    border: 2px solid var(--ink); border-radius: 14px; padding: 18px;
     background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 18px;
   }
-  .rep-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 12px 0;
-    border-bottom: 1px dashed var(--line);
-  }
+  .rep-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--line); }
   .rep-row:last-child { border-bottom: 0; }
   .rep-badge {
-    flex-shrink: 0;
-    width: 72px;
-    text-align: center;
-    padding: 4px 0;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    flex-shrink: 0; width: 84px; text-align: center;
+    padding: 5px 0; border-radius: 6px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
   }
   .b-raw { background: #1a1a1a; color: #faf9f6; }
   .b-md { background: var(--accent); color: #fff; }
-  .b-prev { background: #2f6f58; color: #fff; }
-  .b-tr { background: #5f6fa3; color: #fff; }
-  .link-arrow::after { content: " →"; }
-  .grid-divider {
-    background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
-    height: 1px;
+  .b-prev { background: var(--green); color: #fff; }
+  .b-tr { background: var(--blue); color: #fff; }
+
+  /* Ingest paths */
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .paths { grid-template-columns: 1fr; } }
+  .path-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px;
   }
+  .path-card h4 {
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 6px;
+  }
+  .path-card .name { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+  .path-card .step {
+    font-family: ui-monospace, monospace; font-size: 12px;
+    color: #333; padding: 3px 0;
+  }
+
+  /* Request sequence */
+  .seq {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 22px;
+  }
+  .seq-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 14px; align-items: start;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .seq-row:last-child { border-bottom: 0; }
+  .seq-from {
+    font-family: ui-monospace, monospace;
+    font-size: 12px; color: var(--muted);
+    padding-top: 3px;
+  }
+  .seq-msg { font-size: 14px; line-height: 1.5; }
+  .seq-msg .arr { color: var(--accent); font-weight: 700; margin: 0 6px; }
+  .seq-msg b { color: var(--ink); }
+  .seq-note { color: var(--muted); font-size: 12px; font-style: italic; margin-top: 3px; }
 </style>
 </head>
 <body>
@@ -133,84 +191,271 @@
       <div class="w-7 h-7 rounded-md accent-bar"></div>
       <span class="font-semibold tracking-tight">AI Office Blueprint</span>
     </div>
-    <div class="hidden md:flex items-center gap-6 text-sm text-stone-500">
-      <a href="#storage" class="hover:text-stone-900">Storage</a>
-      <a href="#datamodel" class="hover:text-stone-900">Data model</a>
-      <a href="#pipeline" class="hover:text-stone-900">Pipeline</a>
-      <a href="#flows" class="hover:text-stone-900">Flows</a>
-      <a href="#components" class="hover:text-stone-900">Components</a>
-      <a href="#rules" class="hover:text-stone-900">Rules</a>
+    <div class="hidden md:flex items-center gap-5 text-sm text-stone-500">
+      <a href="#team" class="hover:text-stone-900">Team</a>
+      <a href="#places" class="hover:text-stone-900">Where it lives</a>
+      <a href="#cowork" class="hover:text-stone-900">Cowork</a>
+      <a href="#skills" class="hover:text-stone-900">Skills</a>
+      <a href="#docs" class="hover:text-stone-900">Documents</a>
+      <a href="#ingest" class="hover:text-stone-900">Ingest</a>
+      <a href="#employee" class="hover:text-stone-900">Employee</a>
+      <a href="#client" class="hover:text-stone-900">Client</a>
     </div>
   </div>
 </header>
 
 <!-- Hero -->
-<section class="max-w-6xl mx-auto px-6 pt-20 pb-16">
+<section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
   <div class="max-w-3xl">
-    <div class="pill mb-6">
-      <span class="pill-dot"></span>
-      Architecture overview
-    </div>
-    <h1 class="serif text-5xl md:text-6xl font-medium leading-[1.05] tracking-tight mb-6">
-      Multi-client AI office with a shared artifact store and a client-facing portal.
+    <div class="pill mb-5"><span class="pill-dot"></span>Walkthrough · 5-person firm</div>
+    <h1 class="serif text-5xl md:text-6xl font-medium leading-[1.05] tracking-tight mb-5">
+      How the architecture actually runs for a small team.
     </h1>
-    <p class="text-lg text-stone-600 leading-relaxed max-w-2xl">
-      An architecture for a service organization that uses Claude Cowork on its employees' desktops,
-      ingests work products from many channels, normalizes them into a single container format,
-      and exposes them to each client through a secure web portal with a RAG-powered chat.
+    <p class="text-lg text-stone-600 leading-relaxed">
+      A concrete walkthrough of the pieces: who sits where, what runs on their desktop,
+      where data and rules live, how an employee pulls information from the central store,
+      and how the client sees only what is meant for them.
     </p>
-    <div class="flex flex-wrap gap-3 mt-8">
-      <span class="pill"><span class="pill-dot"></span>Claude Cowork</span>
-      <span class="pill"><span class="pill-dot"></span>Central API</span>
-      <span class="pill"><span class="pill-dot"></span>Postgres + pgvector</span>
-      <span class="pill"><span class="pill-dot"></span>S3 object storage</span>
-      <span class="pill"><span class="pill-dot"></span>Next.js portal</span>
-      <span class="pill"><span class="pill-dot"></span>Row-Level Security</span>
+  </div>
+</section>
+
+<!-- 1. The team -->
+<section id="team" class="max-w-6xl mx-auto px-6 py-10">
+  <div class="flex items-baseline gap-4 mb-6">
+    <span class="num-chip">01</span>
+    <h2 class="serif text-3xl md:text-4xl tracking-tight">The team</h2>
+  </div>
+  <p class="text-stone-600 leading-relaxed mb-6 max-w-3xl">
+    A representative five-person service firm. One partner acts as admin and owner of rules
+    and access. Four associates do the work through Claude Cowork on their desktops. Clients
+    live outside the team — they only ever touch the portal.
+  </p>
+  <div class="grid md:grid-cols-5 gap-3">
+    <div class="role-card">
+      <div class="role-icon r-p">P</div>
+      <div class="font-medium">Partner · Admin</div>
+      <div class="text-xs text-stone-500">Owns the rulebook, grants client access, promotes artifacts.</div>
+    </div>
+    <div class="role-card">
+      <div class="role-icon r-a">A1</div>
+      <div class="font-medium">Associate 1</div>
+      <div class="text-xs text-stone-500">Works in Cowork. Writes artifacts, reads client history.</div>
+    </div>
+    <div class="role-card">
+      <div class="role-icon r-a">A2</div>
+      <div class="font-medium">Associate 2</div>
+      <div class="text-xs text-stone-500">Same surface, different device.</div>
+    </div>
+    <div class="role-card">
+      <div class="role-icon r-a">A3</div>
+      <div class="font-medium">Associate 3</div>
+      <div class="text-xs text-stone-500">Same surface, different device.</div>
+    </div>
+    <div class="role-card">
+      <div class="role-icon r-c">C</div>
+      <div class="font-medium">Clients · N</div>
+      <div class="text-xs text-stone-500">Log in to the portal. View public artifacts, ask in chat.</div>
     </div>
   </div>
 </section>
 
-<!-- Principles strip -->
-<section class="bg-stone-100 border-y border-stone-200">
-  <div class="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
-    <div>
-      <div class="section-label mb-2">Principle 01</div>
-      <div class="serif text-2xl mb-2">Collect anywhere, write in one place.</div>
-      <p class="text-stone-600 text-sm leading-relaxed">Data flows in from many sources, but every artifact is written through a single, audited pipeline.</p>
+<!-- 2. Where things live -->
+<section id="places" class="bg-stone-100 border-y border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-14">
+    <div class="flex items-baseline gap-4 mb-6">
+      <span class="num-chip">02</span>
+      <h2 class="serif text-3xl md:text-4xl tracking-tight">Where things live</h2>
     </div>
-    <div>
-      <div class="section-label mb-2">Principle 02</div>
-      <div class="serif text-2xl mb-2">Raw is the truth; Markdown is the language of AI.</div>
-      <p class="text-stone-600 text-sm leading-relaxed">Originals are preserved for legal correctness. AI works with a normalized representation that is uniform across sources.</p>
+    <p class="text-stone-600 leading-relaxed mb-10 max-w-3xl">
+      Three distinct environments. Each has a clear purpose and a single source of truth.
+      Nothing is duplicated across them — everything else is fetched at the moment it is needed.
+    </p>
+
+    <div class="place-grid">
+      <!-- Desktop -->
+      <div class="place-card">
+        <span class="tag">On each desktop</span>
+        <h4>Employee workstation</h4>
+        <div class="place-sub">macOS / Windows · one per associate</div>
+        <ul>
+          <li><b>Claude Cowork app</b> — the AI surface the associate works in.</li>
+          <li><b>MCP plugin</b> (auto-installed) — exposes the central store to Cowork.</li>
+          <li><b>Local connectors</b> — to personal Gmail, Calendar, Drive.</li>
+          <li><b>Bearer token</b> — in the OS keychain, never in a prompt.</li>
+        </ul>
+      </div>
+
+      <!-- Central -->
+      <div class="place-card" style="border-color: var(--accent);">
+        <span class="tag">Central</span>
+        <h4>Central store (server)</h4>
+        <div class="place-sub">A small VPS · Fly.io / Railway / AWS</div>
+        <ul>
+          <li><b>API</b> — the one way to read or write anything.</li>
+          <li><b>Postgres + pgvector</b> — metadata, versions, embeddings.</li>
+          <li><b>S3 bucket</b> — raw files, previews, transcripts.</li>
+          <li><b>Inbox table</b> — single entry point for all ingested events.</li>
+          <li><b>Row-Level Security</b> — tenant isolation at the DB level.</li>
+        </ul>
+      </div>
+
+      <!-- GitHub -->
+      <div class="place-card">
+        <span class="tag">Governance</span>
+        <h4>Private GitHub repository</h4>
+        <div class="place-sub">Source of truth for skills and rules</div>
+        <ul>
+          <li><b>Plugin packages</b> — shipped to every associate's Cowork.</li>
+          <li><b>Skills</b> — prompt templates exposed as slash commands.</li>
+          <li><b>AI_Rules.md</b> — central policy read by every Cowork project.</li>
+          <li><b>Version-controlled</b> — every change reviewed via pull request.</li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <div class="section-label mb-2">Principle 03</div>
-      <div class="serif text-2xl mb-2">Isolation is enforced at the database level.</div>
-      <p class="text-stone-600 text-sm leading-relaxed">A misconfigured query cannot leak across clients — Row-Level Security makes cross-tenant reads physically impossible.</p>
+    <div class="mt-6 text-sm text-stone-500">
+      The partner's browser is the fourth surface — used for admin tasks (inviting clients, promoting artifacts, rotating tokens).
     </div>
   </div>
 </section>
 
-<!-- Storage model -->
-<section id="storage" class="max-w-6xl mx-auto px-6 py-20">
-  <div class="grid md:grid-cols-[1fr_1.4fr] gap-12 items-start">
+<!-- 3. The role of Cowork -->
+<section id="cowork" class="max-w-6xl mx-auto px-6 py-14">
+  <div class="flex items-baseline gap-4 mb-6">
+    <span class="num-chip">03</span>
+    <h2 class="serif text-3xl md:text-4xl tracking-tight">What Cowork does, and what it does not</h2>
+  </div>
+  <div class="grid md:grid-cols-2 gap-8">
     <div>
-      <div class="section-label mb-3">Storage Model</div>
-      <h2 class="serif text-4xl md:text-5xl tracking-tight mb-5 leading-[1.1]">
-        An artifact is a container of representations.
-      </h2>
-      <p class="text-stone-600 leading-relaxed mb-4">
-        Every deliverable — a contract, a meeting transcript, an email thread, a spreadsheet —
-        is stored as a single versioned container. Inside the container live multiple
-        representations of the same underlying content, each optimized for a different consumer.
+      <p class="text-stone-700 leading-relaxed mb-3">
+        <b>Cowork is the interface</b>, not the store. Every associate opens Cowork as their daily
+        workspace. Inside it, they drive the AI through natural instructions and slash commands.
+        The AI reads local files, browses the central store, composes deliverables, sends drafts for review.
       </p>
-      <p class="text-stone-600 leading-relaxed">
-        The AI layer only ever reads the canonical Markdown. The client only ever sees raw and preview.
-        This separation is what makes the system both legally correct and AI-native at the same time.
+      <p class="text-stone-700 leading-relaxed mb-3">
+        <b>Cowork does not store anything long-term.</b> Chats and in-flight context are local and
+        ephemeral. Any artifact worth keeping is pushed to the central store through the plugin —
+        otherwise it effectively disappears with the session.
+      </p>
+      <p class="text-stone-700 leading-relaxed">
+        <b>Every associate has the same Cowork.</b> Same installed plugins, same skills, same
+        connector permissions, same rulebook. Different local files, different device. The uniformity
+        is what makes the system predictable.
+      </p>
+    </div>
+    <div class="card p-6">
+      <div class="section-label mb-3">Cowork's job, in one list</div>
+      <ul class="space-y-3 text-sm">
+        <li class="flex gap-3"><span class="text-amber-700 font-bold">1.</span><span>Run multi-step instructions across local files and installed apps.</span></li>
+        <li class="flex gap-3"><span class="text-amber-700 font-bold">2.</span><span>Call tools exposed by the plugin — read and write the central store.</span></li>
+        <li class="flex gap-3"><span class="text-amber-700 font-bold">3.</span><span>Follow the centrally shipped skills and rules without local management.</span></li>
+        <li class="flex gap-3"><span class="text-amber-700 font-bold">4.</span><span>Collect from personal channels (email, drive, calendar) and forward the results.</span></li>
+        <li class="flex gap-3"><span class="text-amber-700 font-bold">5.</span><span>Never become the system of record — that role belongs to the central store.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Where skills live + distribution -->
+<section id="skills" class="bg-stone-100 border-y border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-14">
+    <div class="flex items-baseline gap-4 mb-6">
+      <span class="num-chip">04</span>
+      <h2 class="serif text-3xl md:text-4xl tracking-tight">Where skills and rules live</h2>
+    </div>
+    <p class="text-stone-600 leading-relaxed mb-8 max-w-3xl">
+      Skills and rules are the firm's codified way of working. They must be identical across
+      every associate, and they must change through a reviewed process — not through casual
+      edits on someone's laptop. The pipeline looks like this:
+    </p>
+
+    <!-- Distribution flow -->
+    <div class="card p-6 mb-8">
+      <div class="flow">
+        <div class="flow-node emph">
+          <div>
+            <div class="font-semibold">GitHub repo</div>
+            <div class="text-xs text-stone-500">private · source of truth</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div>
+            <div class="font-semibold">Private Marketplace</div>
+            <div class="text-xs text-stone-500">managed in Anthropic admin console</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node primary">
+          <div>
+            <div class="font-semibold">Cowork × 4</div>
+            <div class="text-xs" style="color:#bbb">auto-installed on every desktop</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="card p-5">
+        <div class="section-label mb-2">Skills</div>
+        <div class="font-semibold mb-1">Prompt templates</div>
+        <p class="text-stone-600 text-sm leading-relaxed">
+          Files like <span class="mono">SKILL.md</span> — one file per skill. Bundled into a plugin
+          and exposed to Cowork as slash commands.
+        </p>
+      </div>
+      <div class="card p-5">
+        <div class="section-label mb-2">Plugin</div>
+        <div class="font-semibold mb-1">Skills + connectors + tools</div>
+        <p class="text-stone-600 text-sm leading-relaxed">
+          Our plugin also carries the MCP server that talks to the central API. This is what
+          gives Cowork its hands: read-artifact, save-artifact, search, and more.
+        </p>
+      </div>
+      <div class="card p-5">
+        <div class="section-label mb-2">Rules</div>
+        <div class="font-semibold mb-1"><span class="mono">AI_Rules.md</span></div>
+        <p class="text-stone-600 text-sm leading-relaxed">
+          The firm's policy file. Every Cowork project's instructions say:
+          <em>"Before anything else, read AI_Rules.md"</em>. A change there propagates to all
+          four associates on their next session.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-6 text-sm text-stone-500 max-w-3xl">
+      Associates do not edit skills or rules on their own machines. They open a pull request in
+      the GitHub repo, the partner reviews and merges, and the marketplace redistributes the new
+      version.
+    </div>
+  </div>
+</section>
+
+<!-- 5. Document storage -->
+<section id="docs" class="max-w-6xl mx-auto px-6 py-14">
+  <div class="flex items-baseline gap-4 mb-6">
+    <span class="num-chip">05</span>
+    <h2 class="serif text-3xl md:text-4xl tracking-tight">What a document actually is</h2>
+  </div>
+
+  <div class="grid md:grid-cols-[1fr_1.3fr] gap-10 items-start">
+    <div>
+      <p class="text-stone-700 leading-relaxed mb-3">
+        Every document in the system is a <b>container</b>, not a single file. The container
+        holds several parallel representations of the same underlying content, each tuned
+        for a different consumer.
+      </p>
+      <p class="text-stone-700 leading-relaxed mb-3">
+        The AI operates exclusively on the canonical Markdown. The client sees the raw
+        original and a rendered preview. The container itself is versioned — every update
+        creates a new version with its own representations.
+      </p>
+      <p class="text-stone-700 leading-relaxed">
+        Binary data (PDFs, images, audio) lives in object storage; metadata, versions,
+        and text chunks live in Postgres.
       </p>
     </div>
 
-    <div class="container-card">
+    <div class="container-box">
       <div class="flex items-center justify-between mb-4">
         <div>
           <div class="text-xs text-stone-500 uppercase tracking-wider">Artifact</div>
@@ -221,545 +466,281 @@
       <div class="rep-row">
         <span class="rep-badge b-raw">Raw</span>
         <div>
-          <div class="font-medium">Original file as it arrived</div>
-          <div class="text-sm text-stone-500">pdf, docx, mp3, eml · the source of truth for the client and for legal.</div>
+          <div class="font-medium">Original file</div>
+          <div class="text-sm text-stone-500">pdf · docx · mp3 · eml — the source of truth.</div>
         </div>
       </div>
       <div class="rep-row">
         <span class="rep-badge b-md">Canonical</span>
         <div>
           <div class="font-medium">Normalized Markdown</div>
-          <div class="text-sm text-stone-500">A uniform format across all sources. This is the only representation the AI ever sees.</div>
+          <div class="text-sm text-stone-500">Uniform format across sources. The AI reads only this.</div>
         </div>
       </div>
       <div class="rep-row">
         <span class="rep-badge b-prev">Preview</span>
         <div>
-          <div class="font-medium">Rendered HTML / PDF</div>
-          <div class="text-sm text-stone-500">Fast browser rendering in the client portal without downloading the original.</div>
+          <div class="font-medium">HTML / PDF preview</div>
+          <div class="text-sm text-stone-500">For fast in-portal display.</div>
         </div>
       </div>
       <div class="rep-row">
         <span class="rep-badge b-tr">Transcript</span>
         <div>
           <div class="font-medium">Speech-to-text output</div>
-          <div class="text-sm text-stone-500">When the source is audio or video — searchable, citeable text alongside the original recording.</div>
+          <div class="text-sm text-stone-500">For audio or video sources.</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Data Model -->
-<section id="datamodel" class="bg-stone-900 text-stone-100">
-  <div class="max-w-6xl mx-auto px-6 py-20">
-    <div class="max-w-3xl mb-10">
-      <div class="section-label mb-3" style="color:#e8a07c;">Data Model</div>
-      <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
-        The entities and how they relate.
-      </h2>
-      <p class="text-stone-300 leading-relaxed">
-        Every piece of data in the system belongs to exactly one client. Artifacts have versions;
-        each version carries multiple representations and an independent set of embedding chunks.
-        Access tokens — for both employees and clients — are scoped, revocable, and auditable.
-      </p>
+<!-- 6. Ingest -->
+<section id="ingest" class="bg-stone-100 border-y border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 py-14">
+    <div class="flex items-baseline gap-4 mb-6">
+      <span class="num-chip">06</span>
+      <h2 class="serif text-3xl md:text-4xl tracking-tight">How documents get ingested</h2>
     </div>
-    <div class="bg-white rounded-xl p-6 overflow-x-auto">
-      <div class="mermaid">
-erDiagram
-  CLIENT ||--o{ ARTIFACT : "owns"
-  CLIENT ||--o{ USER_ACCESS : "grants"
-  USER ||--o{ USER_ACCESS : "has"
-  USER ||--o{ ACCESS_TOKEN : "holds"
-  ARTIFACT ||--|{ ARTIFACT_VERSION : "has"
-  ARTIFACT_VERSION ||--|{ REPRESENTATION : "contains"
-  ARTIFACT_VERSION ||--o{ CHUNK : "indexed_as"
-  CHUNK }o--|| EMBEDDING : "stored_as"
-  ARTIFACT ||--o{ COMMENT : "receives"
-  INBOX_EVENT }o--o| ARTIFACT : "produced"
-  AUDIT_LOG }o--|| USER : "written_by"
-
-  CLIENT {
-    uuid id
-    string name
-    string slug
-  }
-  USER {
-    uuid id
-    enum role "employee client admin"
-    string email
-  }
-  USER_ACCESS {
-    uuid user_id
-    uuid client_id
-    enum scope "read write admin"
-  }
-  ACCESS_TOKEN {
-    uuid id
-    uuid user_id
-    string hash
-    jsonb scope
-    timestamp expires_at
-  }
-  ARTIFACT {
-    uuid id
-    uuid client_id
-    string type
-    string title
-    text_array tags
-    enum visibility "internal public"
-  }
-  ARTIFACT_VERSION {
-    uuid id
-    uuid artifact_id
-    int version
-    uuid author_user_id
-    timestamp created_at
-  }
-  REPRESENTATION {
-    uuid id
-    uuid version_id
-    enum kind "raw canonical preview transcript"
-    string mime_type
-    string storage_key
-  }
-  CHUNK {
-    uuid id
-    uuid version_id
-    int ordinal
-    text content
-  }
-  EMBEDDING {
-    uuid chunk_id
-    vector embedding
-    string model
-  }
-  COMMENT {
-    uuid id
-    uuid artifact_id
-    uuid author_user_id
-    text body
-  }
-  INBOX_EVENT {
-    uuid id
-    string source
-    string source_id
-    jsonb payload
-    timestamp received_at
-  }
-  AUDIT_LOG {
-    uuid id
-    uuid user_id
-    string action
-    jsonb context
-    timestamp at
-  }
-      </div>
-    </div>
-    <div class="mt-4 text-xs text-stone-500">Every row in every artifact-related table carries <span class="mono text-stone-300">client_id</span>, which is the anchor for Row-Level Security.</div>
-  </div>
-</section>
-
-<!-- Pipeline diagram -->
-<section id="pipeline" class="bg-stone-100 border-y border-stone-200">
-  <div class="max-w-6xl mx-auto px-6 py-20">
-    <div class="max-w-3xl mb-10">
-      <div class="section-label mb-3">Pipeline</div>
-      <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
-        From many sources to one artifact store.
-      </h2>
-      <p class="text-stone-600 leading-relaxed">
-        Data is collected either through Claude Cowork's native connectors on each employee's desktop,
-        or through small integrator services for sources Cowork does not yet support. Both paths land
-        in a single inbox. A triage agent then classifies each event, extracts its canonical form,
-        and writes it to storage with embeddings ready for retrieval.
-      </p>
-    </div>
-    <div class="mermaid-wrap">
-      <div class="mermaid">
-flowchart TB
-  subgraph SRC ["Sources"]
-    direction LR
-    S1[Gmail]:::src
-    S2[Drive]:::src
-    S3[Calendar]:::src
-    S4[Fireflies]:::src
-    S5[Telegram]:::src
-    S6[Slack]:::src
-  end
-
-  S1 --> B1
-  S2 --> B1
-  S3 --> B1
-  S4 --> B2
-  S5 --> B2
-  S6 --> B2
-
-  B1["Cowork connectors (on desktops)"]:::bridge
-  B2["Integrator services (webhook / cron)"]:::bridge
-
-  B1 --> IN[Ingest · Inbox]:::core
-  B2 --> IN
-
-  IN --> TR[Triage agent · rules]:::core
-  TR --> EX["Extract and Normalize"]:::core
-  EX --> ST[(Storage · Postgres + pgvector + S3)]:::store
-
-  ST --> CW["Cowork plugin (employees)"]:::consumer
-  ST --> CP[Client Portal · docs + RAG chat]:::consumer
-
-  classDef src fill:#fff,stroke:#c7c2b8,stroke-width:1px,color:#1a1a1a,rx:6,ry:6;
-  classDef bridge fill:#f6e9e2,stroke:#c96442,stroke-width:1px,color:#1a1a1a,rx:8,ry:8;
-  classDef core fill:#ffffff,stroke:#1a1a1a,stroke-width:1.4px,color:#1a1a1a,rx:8,ry:8;
-  classDef store fill:#1a1a1a,stroke:#1a1a1a,color:#faf9f6,rx:4,ry:4;
-  classDef consumer fill:#ede9e2,stroke:#7c7c7c,stroke-width:1px,color:#1a1a1a,rx:8,ry:8;
-      </div>
-    </div>
-    <div class="text-center text-xs text-stone-500 mt-4">Data flows left-to-right from sources to consumers; the inbox is the single point of write.</div>
-  </div>
-</section>
-
-<!-- Data Flows -->
-<section id="flows" class="max-w-6xl mx-auto px-6 py-20">
-  <div class="max-w-3xl mb-12">
-    <div class="section-label mb-3">Data Flows</div>
-    <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
-      How each piece of data actually moves.
-    </h2>
-    <p class="text-stone-600 leading-relaxed">
-      Four sequences covering the system's critical paths: an employee producing an artifact,
-      an external source being ingested, a client asking a question, and the lifecycle of an
-      artifact from inbox to public visibility.
+    <p class="text-stone-600 leading-relaxed mb-10 max-w-3xl">
+      Four distinct collection paths feed into one central inbox. The inbox deduplicates by
+      source ID, audits every event, and hands the result to a triage worker that classifies
+      and writes the artifact into the container format described above.
     </p>
-  </div>
 
-  <!-- Flow A: Employee write -->
-  <div class="mb-16">
-    <div class="flex items-baseline gap-4 mb-4">
-      <span class="mono text-xs text-stone-500">FLOW A</span>
-      <h3 class="serif text-2xl">Employee writes an artifact from Cowork</h3>
-    </div>
-    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
-      The employee runs a skill in Claude Cowork. The MCP plugin attaches the bearer token
-      transparently — it never reaches the prompt. The API validates the token's scope against
-      the client_id taken from the project's instructions, creates a new version, and writes
-      the representations in a single transaction.
-    </p>
-    <div class="mermaid-wrap">
-      <div class="mermaid">
-sequenceDiagram
-  autonumber
-  participant E as Employee
-  participant CW as Claude Cowork
-  participant MCP as "MCP Plugin (local)"
-  participant API as Central API
-  participant DB as "Postgres (RLS)"
-  participant S3 as S3 Storage
-  participant Q as "Extract and Embed Worker"
-
-  E->>CW: /save-artifact (file, title, tags)
-  CW->>MCP: tool_call (artifact payload + project client_id)
-  Note over MCP: Reads bearer token / from OS keychain
-  MCP->>API: POST /artifacts (Bearer token)
-  API->>API: Verify token scope / includes client_id
-  API->>S3: PUT raw representation
-  API->>DB: INSERT artifact + version + representation
-  DB-->>API: artifact_id, version_id
-  API-->>MCP: 201 Created (artifact_id)
-  MCP-->>CW: result (link, id)
-  API->>Q: enqueue (artifact_id, version_id)
-  Q->>S3: GET raw
-  Q->>Q: Extract and normalize to MD
-  Q->>Q: Chunk and embed
-  Q->>S3: PUT canonical + preview
-  Q->>DB: INSERT representations + chunks + embeddings
+    <!-- Central flow -->
+    <div class="card p-6 mb-8">
+      <div class="flow">
+        <div class="flow-node">
+          <div>
+            <div class="font-semibold">Any source</div>
+            <div class="text-xs text-stone-500">one of four paths below</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node emph">
+          <div>
+            <div class="font-semibold">Inbox</div>
+            <div class="text-xs text-stone-500">dedupe · audit</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div>
+            <div class="font-semibold">Triage + Extract</div>
+            <div class="text-xs text-stone-500">assign client, normalize, embed</div>
+          </div>
+        </div>
+      </div>
+      <div class="flow mt-3">
+        <div></div>
+        <div></div>
+        <div class="flow-arrow">↓</div>
+        <div></div>
+        <div></div>
+      </div>
+      <div class="flow">
+        <div></div>
+        <div></div>
+        <div class="flow-node primary">
+          <div>
+            <div class="font-semibold">Artifact container</div>
+            <div class="text-xs" style="color:#bbb">stored · indexed · versioned</div>
+          </div>
+        </div>
+        <div></div>
+        <div></div>
       </div>
     </div>
-  </div>
 
-  <!-- Flow B: External ingest -->
-  <div class="mb-16">
-    <div class="flex items-baseline gap-4 mb-4">
-      <span class="mono text-xs text-stone-500">FLOW B</span>
-      <h3 class="serif text-2xl">External source ingested into inbox</h3>
-    </div>
-    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
-      For sources without native Cowork connectors — Telegram, Fireflies, Slack — a small
-      integrator service listens over webhook or long-poll, deduplicates by source ID, and
-      pushes raw events into the single inbox. A triage worker classifies the event and
-      promotes it to an artifact.
-    </p>
-    <div class="mermaid-wrap">
-      <div class="mermaid">
-sequenceDiagram
-  autonumber
-  participant SRC as "External source (Telegram, Fireflies, ...)"
-  participant INT as Integrator service
-  participant IN as Inbox table
-  participant TR as Triage worker
-  participant EX as Extractor
-  participant DB as Postgres
-  participant S3 as S3
+    <!-- Ingest paths -->
+    <div class="paths">
+      <div class="path-card">
+        <h4>Path 01 · Employee push</h4>
+        <div class="name">Associate runs <span class="mono">/save-artifact</span> in Cowork</div>
+        <div class="step">· Cowork skill picks up the file</div>
+        <div class="step">· MCP plugin attaches the bearer token</div>
+        <div class="step">· API receives it with the project's <span class="mono">client_id</span></div>
+        <div class="step"><b>Used for:</b> anything the associate produces in Cowork.</div>
+      </div>
 
-  SRC->>INT: event (new message / transcript)
-  INT->>INT: Dedupe by source_id
-  INT->>S3: PUT raw media (if any)
-  INT->>IN: INSERT inbox_event (source, source_id, payload)
-  Note over IN: Audit log entry written
-  TR->>IN: SELECT unprocessed events
-  TR->>TR: Apply rules (which client, type, tags)
-  alt client_id identified
-    TR->>EX: extract + normalize
-    EX->>DB: INSERT artifact + version + representations
-    EX->>DB: INSERT chunks + embeddings
-    TR->>IN: mark event processed
-  else unknown
-    TR->>IN: move to buffer (client_id = null)
-    Note over TR: Operator will assign / via admin UI
-  end
+      <div class="path-card">
+        <h4>Path 02 · Cowork connector forward</h4>
+        <div class="name">Gmail / Drive / Calendar forward</div>
+        <div class="step">· Cowork's native connector reads the associate's account</div>
+        <div class="step">· A "forward-to-archive" skill pushes matching messages to the inbox</div>
+        <div class="step"><b>Used for:</b> email threads, shared drive files, meetings.</div>
+      </div>
+
+      <div class="path-card">
+        <h4>Path 03 · Integrator service</h4>
+        <div class="name">Telegram · Fireflies · Slack · etc.</div>
+        <div class="step">· A small service on the server listens via webhook or user client</div>
+        <div class="step">· Normalizes and pushes into the inbox</div>
+        <div class="step"><b>Used for:</b> sources that lack a native Cowork connector.</div>
+      </div>
+
+      <div class="path-card">
+        <h4>Path 04 · Email alias</h4>
+        <div class="name"><span class="mono">inbox+acme@firm.tld</span></div>
+        <div class="step">· Anyone (even third-party tools) can forward to a per-client alias</div>
+        <div class="step">· The alias is auto-tagged with the client</div>
+        <div class="step"><b>Used for:</b> Zoom, Otter, newsletters, signed contracts.</div>
       </div>
     </div>
-  </div>
 
-  <!-- Flow C: Client RAG chat -->
-  <div class="mb-16">
-    <div class="flex items-baseline gap-4 mb-4">
-      <span class="mono text-xs text-stone-500">FLOW C</span>
-      <h3 class="serif text-2xl">Client asks a question in the portal chat</h3>
-    </div>
-    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
-      The client's JWT carries their own client_id. Every downstream query is filtered by that
-      value at the SQL level — the application cannot choose to ignore it. Retrieved chunks are
-      passed to Claude with a strict system prompt; the answer is streamed back with inline
-      citations linking to source documents.
-    </p>
-    <div class="mermaid-wrap">
-      <div class="mermaid">
-sequenceDiagram
-  autonumber
-  participant C as Client browser
-  participant P as "Portal (Next.js)"
-  participant API as Central API
-  participant DB as "Postgres + pgvector (RLS)"
-  participant EM as Embeddings service
-  participant LLM as Claude API
-
-  C->>P: Types question
-  P->>API: POST /chat (JWT, query)
-  API->>API: Decode JWT → client_id
-  API->>EM: embed (query)
-  EM-->>API: vector
-  API->>DB: SELECT chunks WHERE client_id = $jwt AND visibility = public, ORDER BY vector distance to query LIMIT 10
-  DB-->>API: top-K chunks + metadata
-  API->>LLM: messages + retrieved context / system: "answer only from sources"
-  LLM-->>API: streamed tokens + citations
-  API-->>P: SSE stream
-  P-->>C: Rendered answer with citation links
-  Note over C,P: Citation click → opens / source document at page
-  P->>API: POST /chat/log (question+answer)
-  API->>DB: INSERT chat_message, audit_log
-      </div>
-    </div>
-  </div>
-
-  <!-- Flow D: Artifact lifecycle -->
-  <div>
-    <div class="flex items-baseline gap-4 mb-4">
-      <span class="mono text-xs text-stone-500">FLOW D</span>
-      <h3 class="serif text-2xl">Artifact lifecycle — from inbox to client visibility</h3>
-    </div>
-    <p class="text-stone-600 text-sm leading-relaxed mb-5 max-w-3xl">
-      An artifact moves through distinct states, each with explicit entry conditions. Nothing
-      reaches the client except through the final explicit promotion, which an employee performs
-      via the Cowork plugin or the admin portal.
-    </p>
-    <div class="mermaid-wrap">
-      <div class="mermaid">
-stateDiagram-v2
-  [*] --> Received : Event lands in inbox
-  Received --> Triaged : Rules assign client_id + type
-  Received --> Buffered : No match — operator decides
-  Buffered --> Triaged : Operator assigns client_id
-  Triaged --> Extracted : Raw → canonical MD + transcript
-  Extracted --> Indexed : Chunks + embeddings persisted
-  Indexed --> Internal : Default visibility
-  Internal --> Public : Employee promotes artifact
-  Public --> Internal : Employee demotes (reversible)
-  Public --> Archived : Retention policy or manual
-  Internal --> Archived : Retention policy or manual
-  Archived --> [*]
-      </div>
+    <div class="mt-8 text-sm text-stone-500 max-w-3xl">
+      Once in the inbox, the flow is identical: triage determines the client_id and type,
+      the extractor produces canonical Markdown and (if needed) a transcript, chunks are
+      embedded, and the container is written in a single transaction.
     </div>
   </div>
 </section>
 
-<!-- Components -->
-<section id="components" class="max-w-6xl mx-auto px-6 py-20">
-  <div class="mb-10 max-w-3xl">
-    <div class="section-label mb-3">Components</div>
-    <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
-      What each layer is, and why it exists.
-    </h2>
-    <p class="text-stone-600 leading-relaxed">
-      Each component has a narrow, well-defined role. Boundaries between them are explicit,
-      which means any single layer can be replaced without rewriting the rest of the system.
-    </p>
+<!-- 7. Employee access -->
+<section id="employee" class="max-w-6xl mx-auto px-6 py-14">
+  <div class="flex items-baseline gap-4 mb-6">
+    <span class="num-chip">07</span>
+    <h2 class="serif text-3xl md:text-4xl tracking-tight">How an associate pulls data from the central store</h2>
+  </div>
+  <p class="text-stone-600 leading-relaxed mb-8 max-w-3xl">
+    The associate asks Cowork a question. The plugin translates that into one or more tool
+    calls to the central API. The API uses the token's scope to check which clients the
+    associate can see, runs the query under Row-Level Security, and returns the result.
+    Claude weaves the answer back into the conversation.
+  </p>
+
+  <div class="seq">
+    <div class="seq-row">
+      <div class="seq-from">Associate</div>
+      <div class="seq-msg">Asks in Cowork: <em>"Summarize our last three contracts with ACME."</em></div>
+    </div>
+    <div class="seq-row">
+      <div class="seq-from">Cowork</div>
+      <div class="seq-msg">Invokes plugin tool <b>search</b><span class="arr">→</span>MCP server on the same machine<div class="seq-note">Token is fetched from the OS keychain and attached to the HTTP request.</div></div>
+    </div>
+    <div class="seq-row">
+      <div class="seq-from">MCP plugin</div>
+      <div class="seq-msg"><b>HTTP POST /search</b><span class="arr">→</span>Central API<div class="seq-note">Authorization: Bearer &lt;token&gt;</div></div>
+    </div>
+    <div class="seq-row">
+      <div class="seq-from">API</div>
+      <div class="seq-msg">Decodes token, derives the scope of client_ids the associate can read.<span class="arr">→</span>Postgres query<div class="seq-note">Row-Level Security restricts results to those client_ids at the SQL level.</div></div>
+    </div>
+    <div class="seq-row">
+      <div class="seq-from">Postgres</div>
+      <div class="seq-msg">Returns matching artifacts — titles, versions, canonical Markdown references, storage keys.</div>
+    </div>
+    <div class="seq-row">
+      <div class="seq-from">API</div>
+      <div class="seq-msg">Responds to the plugin with a structured JSON list of hits.</div>
+    </div>
+    <div class="seq-row">
+      <div class="seq-from">Cowork</div>
+      <div class="seq-msg">If deeper content is needed, calls <b>fetch_artifact</b> to pull the canonical Markdown of specific versions. Claude reads them and writes the summary back to the associate.</div>
+    </div>
   </div>
 
-  <div class="card overflow-hidden">
-    <table class="w-full text-left">
-      <thead class="bg-stone-50">
-        <tr class="border-b border-stone-200">
-          <th class="px-5 py-4 table-head w-48">Layer</th>
-          <th class="px-5 py-4 table-head">Made of</th>
-          <th class="px-5 py-4 table-head">Role</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-stone-100 text-sm">
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Sources</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Gmail, Drive, Calendar, Fireflies, Telegram, Slack, and others.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Where raw data originates.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Bridges</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Claude Cowork connectors on desktops plus small integrator services on the backend.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Bring every source to the same entry point. Use Cowork where native connectors exist; write a service otherwise.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Ingest (Inbox)</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Postgres <span class="mono">inbox_events</span> table and S3 bucket.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Single point of write. Deduplicates by source ID, audits every event, preserves order.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Triage</td>
-          <td class="px-5 py-4 text-stone-600 align-top">A Claude-powered worker with a centralized rulebook.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Decides which client an event belongs to, what type it is, and which tags to apply.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Extract &amp; Normalize</td>
-          <td class="px-5 py-4 text-stone-600 align-top">PDF parser, office-to-markdown converter, speech-to-text, email parser.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Produces canonical Markdown (and a transcript if relevant) from any raw input.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Artifact Storage</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Postgres for metadata and versions; pgvector for embeddings; S3 for binary representations.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Persists the artifact container. Raw is kept as the truth; Markdown is the working copy for AI.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Central API</td>
-          <td class="px-5 py-4 text-stone-600 align-top">A typed HTTP service with endpoints for artifacts, search, and chat.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">The only way anything reads from or writes to storage.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Cowork Plugin</td>
-          <td class="px-5 py-4 text-stone-600 align-top">An MCP server shipped as a plugin, distributed via a private marketplace.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Gives employees seamless read and write access to storage from inside Claude Cowork. Tokens live in the OS keychain and never appear in prompts.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Client Portal</td>
-          <td class="px-5 py-4 text-stone-600 align-top">A Next.js application with document view, RAG chat, comments, and human escalation.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">The only surface a client ever sees. Scoped to their own data by design.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Auth &amp; RLS</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Magic-link or SSO auth plus Postgres Row-Level Security policies.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Separates employees from clients, and each client from every other, at the database level.</td>
-        </tr>
-        <tr>
-          <td class="px-5 py-4 font-semibold align-top">Governance</td>
-          <td class="px-5 py-4 text-stone-600 align-top">A central <span class="mono">AI_Rules.md</span> plus org-provisioned skills shipped to every user.</td>
-          <td class="px-5 py-4 text-stone-600 align-top">Makes sure every Cowork session operates under the same safety, compliance, and brand rules.</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="mt-6 text-sm text-stone-500 max-w-3xl">
+    Writes follow the same path in reverse: Cowork calls <span class="mono">/save-artifact</span>,
+    the API validates scope, writes the container, and enqueues extract-and-embed work.
   </div>
 </section>
 
-<!-- Portal + RAG -->
-<section class="bg-stone-900 text-stone-100">
-  <div class="max-w-6xl mx-auto px-6 py-20">
-    <div class="grid md:grid-cols-[1fr_1.3fr] gap-12 items-start">
-      <div>
-        <div class="section-label mb-3" style="color:#e8a07c;">Client Experience</div>
-        <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-5">
-          A portal the client owns, not a black box.
-        </h2>
-        <p class="text-stone-300 leading-relaxed mb-4">
-          The portal gives every client a live view of the work produced on their behalf —
-          organized, searchable, and answerable. No shared inboxes, no email threads,
-          no "let me get back to you tomorrow."
+<!-- 8. Client access -->
+<section id="client" class="bg-stone-900 text-stone-100">
+  <div class="max-w-6xl mx-auto px-6 py-14">
+    <div class="flex items-baseline gap-4 mb-6">
+      <span class="num-chip" style="background:#faf9f6;color:#1a1a1a;">08</span>
+      <h2 class="serif text-3xl md:text-4xl tracking-tight">How a client interacts with the store</h2>
+    </div>
+    <p class="text-stone-300 leading-relaxed mb-10 max-w-3xl">
+      The client never uses Cowork. They open a browser, authenticate with a magic link
+      (or SSO for larger clients), and land on their own scoped portal. Two entry points:
+      a document view and a RAG-backed chat.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-stone-800 border border-stone-700 rounded-xl p-6">
+        <div class="text-xs uppercase tracking-widest" style="color:#e8a07c">Mode A · Documents</div>
+        <div class="text-lg font-semibold mt-1 mb-2">Browse and download</div>
+        <p class="text-stone-400 text-sm leading-relaxed mb-3">
+          A list of artifacts marked <em>public</em> for this client. Filter by project, tag, or
+          date; preview inline; download originals via time-limited URLs; comment without
+          leaving the page.
         </p>
-        <p class="text-stone-400 leading-relaxed">
-          Behind the chat is a retrieval-augmented pipeline that operates strictly within
-          the client's own scope. Citations link back to the exact document and page that
-          produced every statement.
-        </p>
+        <ul class="text-sm space-y-1">
+          <li class="text-stone-400">· Loads <span class="mono">GET /artifacts</span> — returns only this client's rows.</li>
+          <li class="text-stone-400">· Previews are rendered from the stored preview representation.</li>
+          <li class="text-stone-400">· Raw originals are served from S3 via presigned URLs.</li>
+        </ul>
       </div>
-      <div class="grid gap-4">
-        <div class="bg-stone-800 border border-stone-700 rounded-xl p-5">
-          <div class="text-xs uppercase tracking-widest text-stone-500 mb-2">Documents</div>
-          <div class="text-lg font-medium mb-1">Every deliverable, one place.</div>
-          <div class="text-stone-400 text-sm leading-relaxed">Filter by project, tag, or date. Preview inline. Download with time-limited URLs. Comment without leaving the page.</div>
+      <div class="bg-stone-800 border border-stone-700 rounded-xl p-6">
+        <div class="text-xs uppercase tracking-widest" style="color:#e8a07c">Mode B · Chat</div>
+        <div class="text-lg font-semibold mt-1 mb-2">Ask questions across the archive</div>
+        <p class="text-stone-400 text-sm leading-relaxed mb-3">
+          The client types a question. The answer is composed from their own documents and
+          cited back to them.
+        </p>
+        <ul class="text-sm space-y-1">
+          <li class="text-stone-400">· Question is embedded, then matched against this client's chunks in pgvector.</li>
+          <li class="text-stone-400">· Retrieved chunks go to Claude with a strict system prompt.</li>
+          <li class="text-stone-400">· Response streams back with clickable citations.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="bg-stone-800 border border-stone-700 rounded-xl p-6">
+      <div class="text-xs uppercase tracking-widest text-stone-500 mb-3">What makes this safe</div>
+      <div class="grid md:grid-cols-3 gap-5 text-sm text-stone-300">
+        <div>
+          <div class="font-semibold mb-1" style="color:#e8a07c">JWT carries client_id</div>
+          The browser's session token explicitly identifies which client is logged in.
         </div>
-        <div class="bg-stone-800 border border-stone-700 rounded-xl p-5">
-          <div class="text-xs uppercase tracking-widest text-stone-500 mb-2">RAG chat</div>
-          <div class="text-lg font-medium mb-1">Ask questions about your own data.</div>
-          <div class="text-stone-400 text-sm leading-relaxed">A grounded assistant scoped to the client's public artifacts. Streamed answers, citations, and a human-escalation button whenever the answer is not in the documents.</div>
+        <div>
+          <div class="font-semibold mb-1" style="color:#e8a07c">SQL filter is server-side</div>
+          Every query adds <span class="mono">WHERE client_id = jwt.client_id</span>. The request body cannot override it.
         </div>
-        <div class="bg-stone-800 border border-stone-700 rounded-xl p-5">
-          <div class="text-xs uppercase tracking-widest text-stone-500 mb-2">Feedback loop</div>
-          <div class="text-lg font-medium mb-1">Comments become work items.</div>
-          <div class="text-stone-400 text-sm leading-relaxed">A comment in the portal creates a notification back to the team's Cowork, closing the loop between client and delivery without a separate tool.</div>
+        <div>
+          <div class="font-semibold mb-1" style="color:#e8a07c">Visibility gate</div>
+          Only artifacts flagged <em>public</em> are returned. Internal drafts and notes never leave the team.
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Rules -->
-<section id="rules" class="max-w-6xl mx-auto px-6 py-20">
-  <div class="mb-12 max-w-3xl">
-    <div class="section-label mb-3">Operating Rules</div>
-    <h2 class="serif text-4xl md:text-5xl tracking-tight leading-[1.1] mb-4">
-      Six rules that keep the system coherent.
-    </h2>
+<!-- Closing: four surfaces, one contract -->
+<section class="max-w-6xl mx-auto px-6 py-16">
+  <div class="max-w-3xl mb-8">
+    <div class="section-label mb-3">Summary</div>
+    <h2 class="serif text-3xl md:text-4xl tracking-tight leading-[1.1] mb-3">Four surfaces, one source of truth.</h2>
     <p class="text-stone-600 leading-relaxed">
-      Architecture decisions compound. These are the non-negotiable invariants —
-      the ones that remain true whether the system has two clients or two hundred.
+      The associates live in Cowork. The partner lives in the admin panel. The clients live
+      in the portal. All three are clients of one API over one central store.
     </p>
   </div>
 
-  <div class="grid md:grid-cols-2 gap-5">
-    <div class="rule-card card p-6">
-      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 01</div>
-      <div class="text-lg font-semibold mb-1">Writes are always centralized.</div>
-      <div class="text-stone-600 text-sm leading-relaxed">Reads and collection can be distributed. Storage has a single writer: the central API.</div>
+  <div class="grid md:grid-cols-4 gap-4 text-sm">
+    <div class="card p-5">
+      <div class="section-label mb-2">Surface</div>
+      <div class="font-semibold mb-1">Claude Cowork</div>
+      <div class="text-stone-500">For associates. Writes and reads via plugin.</div>
     </div>
-    <div class="rule-card card p-6">
-      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 02</div>
-      <div class="text-lg font-semibold mb-1">Raw for the client, Markdown for the AI.</div>
-      <div class="text-stone-600 text-sm leading-relaxed">Originals are evidence. Normalized Markdown is the working substrate for every AI operation.</div>
+    <div class="card p-5">
+      <div class="section-label mb-2">Surface</div>
+      <div class="font-semibold mb-1">Admin panel</div>
+      <div class="text-stone-500">For the partner. Invites clients, promotes artifacts, rotates tokens.</div>
     </div>
-    <div class="rule-card card p-6">
-      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 03</div>
-      <div class="text-lg font-semibold mb-1">Tenant isolation lives in the database.</div>
-      <div class="text-stone-600 text-sm leading-relaxed">Row-Level Security in Postgres makes cross-tenant reads impossible, regardless of application bugs.</div>
+    <div class="card p-5">
+      <div class="section-label mb-2">Surface</div>
+      <div class="font-semibold mb-1">Client portal</div>
+      <div class="text-stone-500">For clients. View, comment, chat.</div>
     </div>
-    <div class="rule-card card p-6">
-      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 04</div>
-      <div class="text-lg font-semibold mb-1">Tokens never appear in prompts.</div>
-      <div class="text-stone-600 text-sm leading-relaxed">Secrets live in the OS keychain or environment. The MCP server attaches them to outbound requests — the model never sees them.</div>
-    </div>
-    <div class="rule-card card p-6">
-      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 05</div>
-      <div class="text-lg font-semibold mb-1">Default visibility is internal.</div>
-      <div class="text-stone-600 text-sm leading-relaxed">A deliverable becomes visible to the client only through an explicit promotion. Silence is the safe default.</div>
-    </div>
-    <div class="rule-card card p-6">
-      <div class="text-xs text-stone-500 uppercase tracking-wider mb-2">Rule 06</div>
-      <div class="text-lg font-semibold mb-1">There is always a path to a human.</div>
-      <div class="text-stone-600 text-sm leading-relaxed">Every AI surface — in Cowork and in the portal — exposes a first-class way to hand a question to a person.</div>
+    <div class="card p-5">
+      <div class="section-label mb-2">Storage</div>
+      <div class="font-semibold mb-1">Postgres + pgvector + S3</div>
+      <div class="text-stone-500">One shared source of truth. Accessed only through the API.</div>
     </div>
   </div>
 </section>
@@ -771,7 +752,7 @@ stateDiagram-v2
       <div class="w-5 h-5 rounded accent-bar"></div>
       <span>AI Office Blueprint</span>
     </div>
-    <div class="text-stone-400">Architecture overview · for discussion purposes</div>
+    <div class="text-stone-400">Walkthrough · for discussion purposes</div>
   </div>
 </footer>
 
